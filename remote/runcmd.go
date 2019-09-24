@@ -10,14 +10,17 @@ import (
 	"github.com/kr/pty"
 	"github.com/npat-efault/poller"
 	"github.com/viert/xc/log"
+	"github.com/viert/xc/passmgr"
 )
 
 func (w *Worker) runcmd(task *Task) int {
-	var err error
-	var n int
-	var passwordSent bool
+	var (
+		err          error
+		n            int
+		password     string
+		passwordSent bool
+	)
 
-	passwordSent = currentRaise == RTNone
 	cmd := createSSHCmd(task.Hostname, task.Cmd)
 	cmd.Env = append(os.Environ(), environment...)
 
@@ -37,6 +40,17 @@ func (w *Worker) runcmd(task *Task) int {
 	taskForceStopped := false
 	shouldSkipEcho := false
 	msgCount := 0
+
+	if currentRaise != RTNone {
+		passwordSent = false
+		if currentUsePasswordManager {
+			password = passmgr.GetPass(task.Hostname)
+		} else {
+			password = currentPassword
+		}
+	} else {
+		passwordSent = true
+	}
 
 execLoop:
 	for {
@@ -68,7 +82,7 @@ execLoop:
 			// Trying to find Password prompt in first 5 chunks of data from server
 			if msgCount < 5 {
 				if !passwordSent && exPasswdPrompt.Match(chunk) {
-					ptmx.Write([]byte(currentPassword + "\n"))
+					ptmx.Write([]byte(password + "\n"))
 					passwordSent = true
 					shouldSkipEcho = true
 					continue

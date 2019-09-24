@@ -13,6 +13,7 @@ import (
 	"github.com/chzyer/readline"
 	"github.com/viert/xc/config"
 	"github.com/viert/xc/log"
+	"github.com/viert/xc/passmgr"
 	"github.com/viert/xc/remote"
 	"github.com/viert/xc/store"
 	"github.com/viert/xc/term"
@@ -44,6 +45,7 @@ type Cli struct {
 	prependHostnames bool
 	progressBar      bool
 	debug            bool
+	usePasswordMgr   bool
 
 	interpreter     string
 	sudoInterpreter string
@@ -113,6 +115,16 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	// output
 	cli.outputFileName = ""
 	cli.outputFile = nil
+
+	if cfg.PasswordManagerPath != "" {
+		term.Warnf("Loading password manager from %s\n", cfg.PasswordManagerPath)
+		err = passmgr.Load(cfg.PasswordManagerPath)
+		if err != nil {
+			term.Errorf("Error initializing password manager: %s\n", err)
+		} else {
+			cli.usePasswordMgr = true
+		}
+	}
 
 	remote.Initialize(cli.sshThreads, cli.user)
 	remote.SetPrependHostnames(cli.prependHostnames)
@@ -406,4 +418,24 @@ func (c *Cli) dorunscript(mode execMode, argsLine string) {
 	}
 	r.ErrorHosts = append(r.ErrorHosts, copyError...)
 	r.Print()
+}
+
+func doOnOff(propName string, propRef *bool, args []string) {
+	if len(args) < 1 {
+		value := "off"
+		if *propRef {
+			value = "on"
+		}
+		term.Warnf("%s is %s\n", propName, value)
+		return
+	}
+	switch args[0] {
+	case "on":
+		*propRef = true
+	case "off":
+		*propRef = false
+	default:
+		term.Errorf("Invalid %s vaue. Please use either \"on\" or \"off\"\n", propName)
+		return
+	}
 }

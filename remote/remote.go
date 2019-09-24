@@ -10,15 +10,16 @@ import (
 )
 
 var (
-	pool                    *Pool
-	currentUser             string
-	currentPassword         string
-	currentRaise            RaiseType
-	currentProgressBar      bool
-	currentPrependHostnames bool
-	currentRemoteTmpdir     string
-	currentDebug            bool
-	outputFile              *os.File
+	pool                      *Pool
+	currentUser               string
+	currentPassword           string
+	currentRaise              RaiseType
+	currentUsePasswordManager bool
+	currentProgressBar        bool
+	currentPrependHostnames   bool
+	currentRemoteTmpdir       string
+	currentDebug              bool
+	outputFile                *os.File
 
 	noneInterpreter string
 	suInterpreter   string
@@ -81,6 +82,11 @@ func SetDebug(debug bool) {
 // SetPrependHostnames sets current prepend_hostnames value for parallel mode
 func SetPrependHostnames(prependHostnames bool) {
 	currentPrependHostnames = prependHostnames
+}
+
+// SetUsePasswordManager sets using passmgr on/off
+func SetUsePasswordManager(usePasswordMgr bool) {
+	currentUsePasswordManager = usePasswordMgr
 }
 
 // SetConnectTimeout sets the ssh connect timeout in sshOptions

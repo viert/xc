@@ -371,6 +371,6 @@ List of commands:
     runscript                              runs a local script on a number of remote hosts
     serial                                 shortcut for "mode serial"
     ssh                                    starts ssh session to a number of hosts sequentally
-    user                                   sets current user
-`)
+	user                                   sets current user`)
+	fmt.Println()
 }
