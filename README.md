@@ -74,6 +74,67 @@ host2.example.com group=group1.1 dc=dc2
 
 All the fields given in equation format, i.e., groups/dcs/tags for hosts or worgroups/tags for groups are optional.
 
+### JSON file
+
+More complicated way is to use JSON file as backend. Confugure backend section in you ini file like that: 
+```
+[backend]
+type = json
+filename = ~/xcdata.json
+```
+
+The format of the JSON-file is more complicated that INI file:
+```
+{
+    "datacenters": [
+        {
+            "name": "dc1"
+        },
+        {
+            "name": "dc2",
+            "parent": "dc1"
+        }
+    ],
+    "workgroups": [
+        {
+            "name": "wg1"
+        },
+        {
+            "name": "wg2",
+            "description": "test description"
+        }
+    ],
+    "groups": [
+        {
+            "name": "group1",
+            "workgroupid": "wg1",
+            "tags": ["tag1", "tag2"]
+        },
+        {
+            "name": "group1.1",
+            "workgroup": "wg2",
+            "parent": "group1",
+            "tags": ["tag3", "tag4"]
+        }
+    ],
+    "hosts": [
+        {
+            "name": "host1.example.com",
+            "group": "group1",
+            "dc": "dc1"
+        },
+        {
+            "name": "host2.example.com",
+            "group": "group1.1",
+            "dc": "dc2",
+            "tags": ["tag4"]
+        }
+    ]
+}
+```
+
+Same all the fields given in equation format, i.e., groups/dcs/tags for hosts or worgroups/tags for groups are optional.
+
 ### Conductor (Legacy Inventoree)
 
 **Conductor** backend uses legacy v1 API of Conductor/Inventoree 5.x-6.x. This API doesn't require authentication

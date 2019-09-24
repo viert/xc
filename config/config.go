@@ -316,6 +316,13 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 		return nil, fmt.Errorf("Error configuring backend: backend type is not defined")
 	}
 
+	if cfg.BackendCfg.Type == BTJSON || cfg.BackendCfg.Type == BTIni {
+		if len(cfg.BackendCfg.Options["filename"]) == 0 {
+			return nil, fmt.Errorf("Error configuring backend: backend filename is not defined")
+		}
+		cfg.BackendCfg.Options["filename"] = expandPath(cfg.BackendCfg.Options["filename"])
+	}
+
 	cfg.PasswordManagerPath, _ = props.GetString("passmgr.path")
 
 	envkeys, err := props.Subkeys("environ")

@@ -2,10 +2,10 @@ package store
 
 // Datacenter represents datacenter object
 type Datacenter struct {
-	ID          string
+	ID          string `json:"name"`
 	Description string
 	Name        string
-	ParentID    string
+	ParentID    string `json:"parent"`
 
 	Parent   *Datacenter
 	Root     *Datacenter
@@ -14,12 +14,12 @@ type Datacenter struct {
 
 // Host represents host object
 type Host struct {
-	ID           string
+	ID           string `json:"name"`
 	Aliases      []string
 	Tags         []string
 	FQDN         string
-	GroupID      string
-	DatacenterID string
+	GroupID      string `json:"group"`
+	DatacenterID string `json:"dc"`
 	Description  string
 
 	AllTags    []string
@@ -29,12 +29,12 @@ type Host struct {
 
 // Group represents a group of hosts
 type Group struct {
-	ID          string
-	ParentID    string
+	ID          string `json:"name"`
+	ParentID    string `json:"parent"`
 	Tags        []string
 	Description string
 	Name        string
-	WorkGroupID string
+	WorkGroupID string `json:"workgroup"`
 
 	AllTags   []string
 	WorkGroup *WorkGroup
@@ -45,7 +45,7 @@ type Group struct {
 
 // WorkGroup represents a group of users
 type WorkGroup struct {
-	ID          string
+	ID          string `json:"name"`
 	Name        string
 	Description string
 	Groups      []*Group
