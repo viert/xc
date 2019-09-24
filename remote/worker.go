@@ -129,7 +129,11 @@ func (w *Worker) run() {
 
 		// does the task have anything to copy?
 		if task.RemoteFilename != "" && task.LocalFilename != "" {
-			result = w.copy(task)
+			if task.Copy == CTScp {
+				result = w.copy(task)
+			} else {
+				result = w.tarcopy(task)
+			}
 			log.Debugf("WRK[%d] Copy on %s, status=%d", w.id, task.Hostname, result)
 			w.data <- &Message{nil, MTCopyFinished, task.Hostname, result}
 			if result != 0 {

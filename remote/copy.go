@@ -49,7 +49,7 @@ func (w *Worker) tarcopy(task *Task) int {
 		if n == 0 {
 			continue
 		}
-		w.data <- &Message{buf[:n], MTDebug, task.Hostname, 0}
+		w.data <- &Message{buf[:n], MTData, task.Hostname, 0}
 		buf = make([]byte, bufferSize)
 	}
 
