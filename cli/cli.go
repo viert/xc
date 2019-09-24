@@ -94,6 +94,7 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	cli.stopped = false
 	cli.aliases = make(map[string]*alias)
 	cli.setupCmdHandlers()
+	setEnvironment(cfg.LocalEnvironment)
 
 	cfg.Readline.AutoComplete = cli.completer
 	cli.rl, err = readline.NewEx(cfg.Readline)
@@ -264,6 +265,12 @@ func (c *Cli) CmdLoop() {
 		}
 		c.aliasRecursionCount = maxAliasRecursion
 		c.OneCmd(line)
+	}
+}
+
+func setEnvironment(environ map[string]string) {
+	for key, value := range environ {
+		os.Setenv(key, value)
 	}
 }
 
