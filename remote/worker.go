@@ -18,6 +18,15 @@ const (
 	RTSudo
 )
 
+// CopyType enum
+type CopyType int
+
+// Copy types
+const (
+	CTScp CopyType = iota
+	CTTar
+)
+
 // Task type represents a worker task descriptor
 type Task struct {
 	Hostname       string
@@ -25,6 +34,7 @@ type Task struct {
 	RemoteFilename string
 	RecursiveCopy  bool
 	Cmd            string
+	Copy           CopyType
 	WG             *sync.WaitGroup
 }
 

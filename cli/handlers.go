@@ -93,6 +93,7 @@ func (c *Cli) doUser(name string, argsLine string, args ...string) {
 		return
 	}
 	c.user = args[0]
+	remote.SetUser(c.user)
 }
 
 func (c *Cli) doHostlist(name string, argsLine string, args ...string) {

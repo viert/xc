@@ -38,6 +38,7 @@ func Distribute(hosts []string, localFilename string, remoteFilename string, rec
 				LocalFilename:  localFilename,
 				RemoteFilename: remoteFilename,
 				RecursiveCopy:  recursive,
+				Copy:           CTTar,
 				Cmd:            "",
 				WG:             &wg,
 			}
