@@ -189,6 +189,9 @@ func RunCollapse(hosts []string, cmd string) *ExecResult {
 		case d := <-pool.Data:
 			switch d.Type {
 			case MTData:
+				if currentDebug {
+					log.Debugf("DATASTREAM @ %s:\n%v\n[%v]\n", d.Hostname, d.Data, string(d.Data))
+				}
 				outputs[d.Hostname] += string(d.Data)
 				logData := make([]byte, len(d.Data))
 				copy(logData, d.Data)
@@ -198,7 +201,7 @@ func RunCollapse(hosts []string, cmd string) *ExecResult {
 				writeHostOutput(d.Hostname, logData)
 			case MTDebug:
 				if currentDebug {
-					log.Debugf("DATASTREAM @ %s\n%v\n[%v]", d.Hostname, d.Data, string(d.Data))
+					log.Debugf("DEBUGSTREAM @ %s:\n%v\n[%v]\n", d.Hostname, d.Data, string(d.Data))
 				}
 			case MTCopyFinished:
 				if d.StatusCode == 0 {
@@ -226,12 +229,15 @@ func RunCollapse(hosts []string, cmd string) *ExecResult {
 		bar.Finish()
 	}
 
-	for k, v := range outputs {
-		_, found := r.Outputs[v]
+	for host, hostOutput := range outputs {
+		_, found := r.Outputs[hostOutput]
 		if !found {
-			r.Outputs[v] = make([]string, 0)
+			if currentDebug {
+				log.Debugf("Collapse mode found a new output:\n\"%s\"\n%v\n", hostOutput, []byte(hostOutput))
+			}
+			r.Outputs[hostOutput] = make([]string, 0)
 		}
-		r.Outputs[v] = append(r.Outputs[v], k)
+		r.Outputs[hostOutput] = append(r.Outputs[hostOutput], host)
 	}
 
 	return r

@@ -74,7 +74,7 @@ execLoop:
 			continue
 		}
 
-		w.data <- &Message{buf, MTDebug, task.Hostname, -1}
+		w.data <- &Message{buf[:n], MTDebug, task.Hostname, -1}
 		msgCount++
 
 		chunks := bytes.SplitAfter(buf[:n], []byte{'\n'})

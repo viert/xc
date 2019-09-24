@@ -154,7 +154,7 @@ func (w *Worker) run() {
 
 		// does the task have anything to run?
 		if task.Cmd != "" {
-			log.Debugf("WRK[%d] runcmd(%s) at %s", task.Cmd, task.Hostname)
+			log.Debugf("WRK[%d] runcmd(%s) at %s", w.id, task.Cmd, task.Hostname)
 			result = w.runcmd(task)
 			w.data <- &Message{nil, MTExecFinished, task.Hostname, result}
 		}
