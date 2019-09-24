@@ -288,9 +288,10 @@ func (c *Cli) confirm(msg string) bool {
 }
 
 func (c *Cli) acquirePasswd() {
-	if c.raiseType == remote.RTNone {
+	if c.raiseType == remote.RTNone || c.usePasswordMgr {
 		return
 	}
+
 	if c.raisePasswd == "" {
 		c.doPasswd("passwd", "")
 	}
