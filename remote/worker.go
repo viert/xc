@@ -18,6 +18,15 @@ const (
 	RTSudo
 )
 
+// CopyType enum
+type CopyType int
+
+// Copy types
+const (
+	CTScp CopyType = iota
+	CTTar
+)
+
 // Task type represents a worker task descriptor
 type Task struct {
 	Hostname       string
@@ -25,6 +34,7 @@ type Task struct {
 	RemoteFilename string
 	RecursiveCopy  bool
 	Cmd            string
+	Copy           CopyType
 	WG             *sync.WaitGroup
 }
 
@@ -119,7 +129,11 @@ func (w *Worker) run() {
 
 		// does the task have anything to copy?
 		if task.RemoteFilename != "" && task.LocalFilename != "" {
-			result = w.copy(task)
+			if task.Copy == CTScp {
+				result = w.copy(task)
+			} else {
+				result = w.tarcopy(task)
+			}
 			log.Debugf("WRK[%d] Copy on %s, status=%d", w.id, task.Hostname, result)
 			w.data <- &Message{nil, MTCopyFinished, task.Hostname, result}
 			if result != 0 {

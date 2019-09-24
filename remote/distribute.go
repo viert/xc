@@ -1,12 +1,15 @@
 package remote
 
 import (
+	"bytes"
+	"fmt"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
 	"github.com/viert/xc/log"
+	"github.com/viert/xc/term"
 	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
@@ -38,6 +41,7 @@ func Distribute(hosts []string, localFilename string, remoteFilename string, rec
 				LocalFilename:  localFilename,
 				RemoteFilename: remoteFilename,
 				RecursiveCopy:  recursive,
+				Copy:           CTTar,
 				Cmd:            "",
 				WG:             &wg,
 			}
@@ -50,6 +54,15 @@ func Distribute(hosts []string, localFilename string, remoteFilename string, rec
 		select {
 		case d := <-pool.Data:
 			switch d.Type {
+			case MTData:
+				if !bytes.HasSuffix(d.Data, []byte{'\n'}) {
+					d.Data = append(d.Data, '\n')
+				}
+				if currentPrependHostnames {
+					fmt.Printf("%s: ", term.Blue(d.Hostname))
+				}
+				fmt.Print(string(d.Data))
+				writeHostOutput(d.Hostname, d.Data)
 			case MTDebug:
 				if currentDebug {
 					log.Debugf("DATASTREAM @ %s\n%v\n[%v]", d.Hostname, d.Data, string(d.Data))

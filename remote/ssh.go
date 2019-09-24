@@ -28,6 +28,18 @@ func sshOpts() (params []string) {
 	return
 }
 
+func createTarCopyCmd(host string, local string, remote string) *exec.Cmd {
+	if remote == "" || remote == local {
+		remote = "."
+	}
+	options := strings.Join(sshOpts(), " ")
+	sshCmd := fmt.Sprintf("ssh -l %s %s %s", currentUser, options, host)
+	tarCmd := fmt.Sprintf("tar c %s | %s tar x -C %s", local, sshCmd, remote)
+	params := []string{"-c", tarCmd}
+	log.Debugf("Created command bash %v", params)
+	return exec.Command("bash", params...)
+}
+
 func createSCPCmd(host string, local string, remote string, recursive bool) *exec.Cmd {
 	params := []string{}
 	if recursive {
