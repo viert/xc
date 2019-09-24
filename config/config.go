@@ -39,6 +39,9 @@ interpreter_su = su -
 type = conductor
 url = http://c.inventoree.ru
 work_groups = 
+
+[passmgr]
+path =
 `
 
 // BackendType is a backend type enum
@@ -61,28 +64,29 @@ type BackendConfig struct {
 
 // XCConfig represents a configuration struct for XC
 type XCConfig struct {
-	Readline          *readline.Config
-	BackendCfg        *BackendConfig
-	User              string
-	SSHThreads        int
-	SSHConnectTimeout int
-	PingCount         int
-	RemoteTmpdir      string
-	Mode              string
-	RaiseType         string
-	Delay             int
-	RCfile            string
-	CacheDir          string
-	CacheTTL          time.Duration
-	Debug             bool
-	ProgressBar       bool
-	PrependHostnames  bool
-	LogFile           string
-	ExitConfirm       bool
-	ExecConfirm       bool
-	SudoInterpreter   string
-	SuInterpreter     string
-	Interpreter       string
+	Readline            *readline.Config
+	BackendCfg          *BackendConfig
+	User                string
+	SSHThreads          int
+	SSHConnectTimeout   int
+	PingCount           int
+	RemoteTmpdir        string
+	Mode                string
+	RaiseType           string
+	Delay               int
+	RCfile              string
+	CacheDir            string
+	CacheTTL            time.Duration
+	Debug               bool
+	ProgressBar         bool
+	PrependHostnames    bool
+	LogFile             string
+	ExitConfirm         bool
+	ExecConfirm         bool
+	SudoInterpreter     string
+	SuInterpreter       string
+	Interpreter         string
+	PasswordManagerPath string
 }
 
 const (
@@ -310,5 +314,7 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 		return nil, fmt.Errorf("Error configuring backend: backend type is not defined")
 	}
 
-	return cfg, err
+	cfg.PasswordManagerPath, _ = props.GetString("passmgr.path")
+
+	return cfg, nil
 }

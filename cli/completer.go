@@ -40,7 +40,7 @@ func newCompleter(store *store.Store, commands []string) *completer {
 	x.handlers["c_runscript"] = x.completeDistribute
 	x.handlers["p_runscript"] = x.completeDistribute
 
-	helpTopics := append(commands, "expressions", "config", "rcfiles")
+	helpTopics := append(commands, "expressions", "config", "rcfiles", "passmgr")
 	x.handlers["help"] = staticCompleter(helpTopics)
 	return x
 }

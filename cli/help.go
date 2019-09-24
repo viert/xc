@@ -161,6 +161,16 @@ It may be useful for configuring aliases (as they are dropped when xc exits) and
 Rcfile is just a number of xc commands in a text file.`,
 		},
 
+		"passmgr": &helpItem{
+			isTopic: true,
+			help: `Password manager is a golang plugin which must have two exported functions:
+func Init() error, which is called on xc start 
+func GetPass(host string) (password string), which is kinda self-explanatory
+
+For more info on how to write golang plugins, please refer to golang documentation or this article:
+https://medium.com/learning-the-go-programming-language/writing-modular-go-programs-with-plugins-ec46381ee1a9`,
+		},
+
 		"debug": &helpItem{
 			usage: "<on/off>",
 			help:  `An internal debug. May cause unexpected output. One shouldn't use it unless she knows what she's doing.`,
@@ -318,6 +328,12 @@ xc moves on to the next server.`,
 without arguments, prints the current value.`,
 		},
 
+		"use_password_manager": &helpItem{
+			usage: "[<on/off>]",
+			help: `Sets the password manager on/off. If no value is given, prints the current value.
+If password manager is not ready, setting this value to "on" will print an error.`,
+		},
+
 		"user": &helpItem{
 			usage: "<username>",
 			help:  `Sets the username for all the execution commands. This is used to get access to hosts via ssh/scp.`,
@@ -370,7 +386,8 @@ List of commands:
     reload                                 reloads hosts and groups data from inventoree
     runscript                              runs a local script on a number of remote hosts
     serial                                 shortcut for "mode serial"
-    ssh                                    starts ssh session to a number of hosts sequentally
-    user                                   sets current user
-`)
+	ssh                                    starts ssh session to a number of hosts sequentally
+	use_password_manager                   turns password manager on/off
+	user                                   sets current user`)
+	fmt.Println()
 }

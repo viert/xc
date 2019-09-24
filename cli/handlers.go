@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/viert/xc/passmgr"
+
 	"github.com/viert/xc/remote"
 	"github.com/viert/xc/term"
 )
@@ -46,6 +48,7 @@ func (c *Cli) setupCmdHandlers() {
 	c.handlers["s_runscript"] = c.doSRunScript
 	c.handlers["c_runscript"] = c.doCRunScript
 	c.handlers["p_runscript"] = c.doPRunScript
+	c.handlers["use_password_manager"] = c.doUsePasswordManager
 
 	commands := make([]string, len(c.handlers))
 	i := 0
@@ -277,66 +280,27 @@ func (c *Cli) doDelay(name string, argsLine string, args ...string) {
 }
 
 func (c *Cli) doDebug(name string, argsLine string, args ...string) {
-	if len(args) < 1 {
-		value := "off"
-		if c.debug {
-			value = "on"
-		}
-		term.Warnf("Debug is %s\n", value)
-		return
-	}
-	switch args[0] {
-	case "on":
-		c.debug = true
-	case "off":
-		c.debug = false
-	default:
-		term.Errorf("Invalid debug value. Please use either \"on\" or \"off\"\n")
-		return
-	}
+	doOnOff("debug", &c.debug, args)
 	remote.SetDebug(c.debug)
 }
 
 func (c *Cli) doProgressBar(name string, argsLine string, args ...string) {
-	if len(args) < 1 {
-		value := "off"
-		if c.progressBar {
-			value = "on"
-		}
-		term.Warnf("Progressbar is %s\n", value)
-		return
-	}
-	switch args[0] {
-	case "on":
-		c.progressBar = true
-	case "off":
-		c.progressBar = false
-	default:
-		term.Errorf("Invalid progressbar value. Please use either \"on\" or \"off\"\n")
-		return
-	}
+	doOnOff("progressbar", &c.progressBar, args)
 	remote.SetProgressBar(c.progressBar)
 }
 
 func (c *Cli) doPrependHostnames(name string, argsLine string, args ...string) {
-	if len(args) < 1 {
-		value := "off"
-		if c.prependHostnames {
-			value = "on"
-		}
-		term.Warnf("prepend_hostnames is %s\n", value)
-		return
-	}
-	switch args[0] {
-	case "on":
-		c.prependHostnames = true
-	case "off":
-		c.prependHostnames = false
-	default:
-		term.Errorf("Invalid prepend_hostnames value. Please use either \"on\" or \"off\"\n")
-		return
-	}
+	doOnOff("prepend_hostnames", &c.prependHostnames, args)
 	remote.SetPrependHostnames(c.prependHostnames)
+}
+
+func (c *Cli) doUsePasswordManager(name string, argsLine string, args ...string) {
+	doOnOff("use_password_manager", &c.usePasswordMgr, args)
+	if c.usePasswordMgr && !passmgr.Ready() {
+		term.Errorf("Password manager is not ready\n")
+		c.usePasswordMgr = false
+	}
+	remote.SetUsePasswordManager(c.usePasswordMgr)
 }
 
 func (c *Cli) doReload(name string, argsLine string, args ...string) {
@@ -359,7 +323,7 @@ func (c *Cli) doInterpreter(name string, argsLine string, args ...string) {
 
 func (c *Cli) doConnectTimeout(name string, argsLine string, args ...string) {
 	if len(args) < 1 {
-		term.Warnf("connect_timeout = %s\n", c.connectTimeout)
+		term.Warnf("connect_timeout = %d\n", c.connectTimeout)
 		return
 	}
 	ct, err := strconv.ParseInt(args[0], 10, 64)
