@@ -93,6 +93,7 @@ func (c *Cli) doUser(name string, argsLine string, args ...string) {
 		return
 	}
 	c.user = args[0]
+	remote.SetUser(c.user)
 }
 
 func (c *Cli) doHostlist(name string, argsLine string, args ...string) {
@@ -159,6 +160,7 @@ func (c *Cli) doRaise(name string, argsLine string, args ...string) {
 		// Drop passwd in case of changing raise type
 		c.raisePasswd = ""
 	}
+	remote.SetRaise(c.raiseType)
 }
 
 func (c *Cli) doPasswd(name string, argsLine string, args ...string) {
@@ -193,11 +195,13 @@ func (c *Cli) doSSH(name string, argsLine string, args ...string) {
 	}
 
 	c.acquirePasswd()
+	remote.SetPassword(c.raisePasswd)
+
 	expr, rest := split([]rune(argsLine))
 
 	hosts, err := c.store.HostList([]rune(expr))
 	if err != nil {
-		term.Errorf("Error parsing expression %s: %s\n", expr, err)
+		term.Errorf("Error parsing expression %s: %s\n", string(expr), err)
 		return
 	}
 
@@ -206,9 +210,6 @@ func (c *Cli) doSSH(name string, argsLine string, args ...string) {
 		return
 	}
 
-	remote.SetUser(c.user)
-	remote.SetPassword(c.raisePasswd)
-	remote.SetRaise(c.raiseType)
 	cmd := string(rest)
 	remote.RunSerial(hosts, cmd, 0)
 }

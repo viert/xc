@@ -318,10 +318,8 @@ func (c *Cli) doexec(mode execMode, argsLine string) {
 	}
 
 	c.acquirePasswd()
-	cmd := string(rest)
-	remote.SetUser(c.user)
-	remote.SetRaise(c.raiseType)
 	remote.SetPassword(c.raisePasswd)
+	cmd := string(rest)
 
 	if c.execConfirm {
 		fmt.Printf("%s\n", term.Yellow(term.HR(len(cmd)+5)))
