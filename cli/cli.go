@@ -112,6 +112,7 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	cli.debug = cfg.Debug
 	cli.connectTimeout = cfg.SSHConnectTimeout
 	cli.remoteTmpDir = cfg.RemoteTmpdir
+	cli.setRaiseType(cfg.RaiseType)
 
 	// output
 	cli.outputFileName = ""
@@ -446,4 +447,24 @@ func doOnOff(propName string, propRef *bool, args []string) {
 		term.Errorf("Invalid %s vaue. Please use either \"on\" or \"off\"\n", propName)
 		return
 	}
+}
+
+func (c *Cli) setRaiseType(rt string) {
+	currentRaiseType := c.raiseType
+	switch rt {
+	case "su":
+		c.raiseType = remote.RTSu
+	case "sudo":
+		c.raiseType = remote.RTSudo
+	case "none":
+		c.raiseType = remote.RTNone
+	default:
+		term.Errorf("Unknown raise type: %s\n", rt)
+	}
+
+	if c.raiseType != currentRaiseType {
+		// Drop passwd in case of changing raise type
+		c.raisePasswd = ""
+	}
+	remote.SetRaise(c.raiseType)
 }

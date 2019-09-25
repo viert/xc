@@ -145,25 +145,7 @@ func (c *Cli) doRaise(name string, argsLine string, args ...string) {
 		term.Errorf("Usage: raise <su/sudo>\n")
 		return
 	}
-
-	currentRaiseType := c.raiseType
-	rt := args[0]
-	switch rt {
-	case "su":
-		c.raiseType = remote.RTSu
-	case "sudo":
-		c.raiseType = remote.RTSudo
-	case "none":
-		c.raiseType = remote.RTNone
-	default:
-		term.Errorf("Unknown raise type: %s\n", rt)
-	}
-
-	if c.raiseType != currentRaiseType {
-		// Drop passwd in case of changing raise type
-		c.raisePasswd = ""
-	}
-	remote.SetRaise(c.raiseType)
+	c.setRaiseType(args[0])
 }
 
 func (c *Cli) doPasswd(name string, argsLine string, args ...string) {
