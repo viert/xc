@@ -8,6 +8,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/viert/xc/passmgr"
+
 	"github.com/kr/pty"
 	"github.com/npat-efault/poller"
 	"github.com/viert/xc/log"
@@ -43,7 +45,7 @@ func forwardUserInput(in *poller.FD, out *os.File, stopped *bool) {
 	}
 }
 
-func interceptProcessOutput(in []byte, ptmx *os.File) (out []byte, err error) {
+func interceptProcessOutput(in []byte, ptmx *os.File, password string) (out []byte, err error) {
 	out = []byte{}
 	err = nil
 
@@ -58,7 +60,7 @@ func interceptProcessOutput(in []byte, ptmx *os.File) (out []byte, err error) {
 	}
 
 	if !passwordSent && exPasswdPrompt.Match(in) {
-		ptmx.Write([]byte(currentPassword + "\n"))
+		ptmx.Write([]byte(password + "\n"))
 		passwordSent = true
 		shouldSkipEcho = true
 		log.Debug("Password sent")
@@ -83,14 +85,16 @@ func interceptProcessOutput(in []byte, ptmx *os.File) (out []byte, err error) {
 
 func runAtHost(host string, cmd *exec.Cmd, r *ExecResult) {
 	var (
-		ptmx *os.File
-		si   *poller.FD
-		buf  []byte
-		err  error
+		ptmx     *os.File
+		si       *poller.FD
+		buf      []byte
+		err      error
+		password string
 
 		stopped = false
 	)
 
+	password = currentPassword
 	passwordSent = false
 	shouldSkipEcho = false
 
@@ -144,11 +148,15 @@ func runAtHost(host string, cmd *exec.Cmd, r *ExecResult) {
 	buf = make([]byte, bufferSize)
 	go forwardUserInput(si, ptmx, &stopped)
 
+	if currentUsePasswordManager {
+		password = passmgr.GetPass(host)
+	}
+
 	for {
 		n, err := ptmx.Read(buf)
 		if n > 0 {
 			// TODO random stuff with intercepting and omitting data
-			data, err := interceptProcessOutput(buf[:n], ptmx)
+			data, err := interceptProcessOutput(buf[:n], ptmx, password)
 			if err != nil {
 				// auth error, can't proceed
 				raise := "su"
