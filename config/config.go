@@ -332,7 +332,8 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 		if err == nil {
 			for _, key := range pmgrkeys {
 				if key == "path" {
-					cfg.PasswordManagerPath, _ = props.GetString("passmgr.path")
+					pluginPath, _ := props.GetString("passmgr.path")
+					cfg.PasswordManagerPath = expandPath(pluginPath)
 				} else {
 					cfg.PasswordManagerOptions[key], _ = props.GetString(fmt.Sprintf("passmgr.%s", key))
 				}
