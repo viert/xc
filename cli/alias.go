@@ -50,6 +50,7 @@ func (c *Cli) runAlias(name string, argsLine string, args ...string) {
 }
 
 func exterpolate(al *alias, argsLine string, args ...string) (string, error) {
+	fmt.Println(al, argsLine, args)
 	res := ""
 	for i := 0; i < len(al.proxy); i++ {
 		if i < len(al.proxy)-1 && al.proxy[i] == '#' {
@@ -62,11 +63,11 @@ func exterpolate(al *alias, argsLine string, args ...string) (string, error) {
 				res += args[argNum]
 				i++
 				continue
+			} else if al.proxy[i+1] == '*' {
+				res += argsLine
+				i++
+				continue
 			}
-		} else if al.proxy[i+1] == '*' {
-			res += argsLine
-			i++
-			continue
 		}
 		res += string(al.proxy[i])
 	}
