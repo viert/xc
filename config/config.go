@@ -126,7 +126,9 @@ var (
 	defaultUser = os.Getenv("USER")
 )
 
-func expandPath(path string) string {
+// ExpandPath helper helps to expand ~ as a home directory
+// as well as it expands any env variable usage in path
+func ExpandPath(path string) string {
 	if strings.HasPrefix(path, "~/") {
 		path = "$HOME/" + path[2:]
 	}
@@ -166,19 +168,19 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 	if err != nil {
 		hf = defaultHistoryFile
 	}
-	cfg.Readline.HistoryFile = expandPath(hf)
+	cfg.Readline.HistoryFile = ExpandPath(hf)
 
 	rcf, err := props.GetString("main.rc_file")
 	if err != nil {
 		rcf = defaultRCfile
 	}
-	cfg.RCfile = expandPath(rcf)
+	cfg.RCfile = ExpandPath(rcf)
 
 	lf, err := props.GetString("main.log_file")
 	if err != nil {
 		lf = defaultLogFile
 	}
-	cfg.LogFile = expandPath(lf)
+	cfg.LogFile = ExpandPath(lf)
 
 	cttl, err := props.GetInt("main.cache_ttl")
 	if err != nil {
@@ -190,7 +192,7 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 	if err != nil {
 		cd = defaultCacheDir
 	}
-	cfg.CacheDir = expandPath(cd)
+	cfg.CacheDir = ExpandPath(cd)
 
 	user, err := props.GetString("main.user")
 	if err != nil || user == "" {
@@ -333,7 +335,7 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 			for _, key := range pmgrkeys {
 				if key == "path" {
 					pluginPath, _ := props.GetString("passmgr.path")
-					cfg.PasswordManagerPath = expandPath(pluginPath)
+					cfg.PasswordManagerPath = ExpandPath(pluginPath)
 				} else {
 					cfg.PasswordManagerOptions[key], _ = props.GetString(fmt.Sprintf("passmgr.%s", key))
 				}
@@ -345,7 +347,7 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 	if err == nil {
 		for _, key := range envkeys {
 			value, _ := props.GetString(fmt.Sprintf("environ.%s", key))
-			cfg.LocalEnvironment[key] = expandPath(value)
+			cfg.LocalEnvironment[key] = ExpandPath(value)
 		}
 	}
 

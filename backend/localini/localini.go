@@ -39,7 +39,7 @@ func New(cfg *config.XCConfig) (*LocalIni, error) {
 	if !found {
 		return nil, fmt.Errorf("localini backend filename option is missing")
 	}
-	return &LocalIni{filename: filename}, nil
+	return &LocalIni{filename: config.ExpandPath(filename)}, nil
 }
 
 // Hosts exported backend method
