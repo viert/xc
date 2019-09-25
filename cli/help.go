@@ -197,6 +197,14 @@ See "help expressions" for further info on <host_expression>.
 Example: distribute %mygroup hello.txt`,
 		},
 
+		"distribute_type": &helpItem{
+			usage: "<scp/tar>",
+			help: `Sets the backend used for the "distribute" command. 
+"tar" option should work faster, it also supports symlinks but may spend
+more memory. "scp" is slower and may let you down in copying directories
+with symlinks. It's more stable though.`,
+		},
+
 		"expressions": &helpItem{
 			help: `A lot of commands in xc use host expressions with a certain syntax to represent a list of hosts.
 Every expression is a comma-separated list of tokens, where token may be
@@ -378,7 +386,8 @@ List of commands:
     collapse                               shortcut for "mode collapse"
     debug                                  one shouldn't use this
     delay                                  sets a delay between hosts in serial mode
-    distribute                             copies a file to a number of hosts in parallel
+	distribute                             copies a file to a number of hosts in parallel
+    distribute_type                        sets the backend of the "distribute" command
     exec/c_exec/s_exec/p_exec              executes a remote command on a number of hosts
     exit                                   exits the xc
     help                                   shows help on various topics
@@ -393,8 +402,8 @@ List of commands:
     reload                                 reloads hosts and groups data from inventoree
     runscript                              runs a local script on a number of remote hosts
     serial                                 shortcut for "mode serial"
-	ssh                                    starts ssh session to a number of hosts sequentally
-	use_password_manager                   turns password manager on/off
-	user                                   sets current user`)
+    ssh                                    starts ssh session to a number of hosts sequentally
+    use_password_manager                   turns password manager on/off
+    user                                   sets current user`)
 	fmt.Println()
 }
