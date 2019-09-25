@@ -159,6 +159,7 @@ func (c *Cli) doDistributeType(name string, argsLine string, args ...string) {
 		return
 	}
 	c.setDistributeType(args[0])
+	term.Successf("distribute_type set to %s\n", args[0])
 }
 
 func (c *Cli) doPasswd(name string, argsLine string, args ...string) {

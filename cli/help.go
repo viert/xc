@@ -164,8 +164,15 @@ Rcfile is just a number of xc commands in a text file.`,
 		"passmgr": &helpItem{
 			isTopic: true,
 			help: `Password manager is a golang plugin which must have two exported functions:
-func Init() error, which is called on xc start 
-func GetPass(host string) (password string), which is kinda self-explanatory
+
+func Init(options map[string]string, debugf func(string, ...interface{})) error
+func GetPass(host string) string
+
+Init function is called on xc start passing all the options found in [passmgr] config section 
+as a map[string]string, and a debugf function which logs to xc shared log if it's enabled.
+
+GetPass function is called to acquire proper password for a host. Xc passes a hostname as the
+only argument and expects function to return a password.
 
 For more info on how to write golang plugins, please refer to golang documentation or this article:
 https://medium.com/learning-the-go-programming-language/writing-modular-go-programs-with-plugins-ec46381ee1a9`,

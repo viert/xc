@@ -65,31 +65,32 @@ type BackendConfig struct {
 
 // XCConfig represents a configuration struct for XC
 type XCConfig struct {
-	Readline            *readline.Config
-	BackendCfg          *BackendConfig
-	User                string
-	SSHThreads          int
-	SSHConnectTimeout   int
-	PingCount           int
-	RemoteTmpdir        string
-	Mode                string
-	RaiseType           string
-	Delay               int
-	RCfile              string
-	CacheDir            string
-	CacheTTL            time.Duration
-	Debug               bool
-	ProgressBar         bool
-	PrependHostnames    bool
-	LogFile             string
-	ExitConfirm         bool
-	ExecConfirm         bool
-	SudoInterpreter     string
-	SuInterpreter       string
-	Interpreter         string
-	PasswordManagerPath string
-	LocalEnvironment    map[string]string
-	Distribute          string
+	Readline               *readline.Config
+	BackendCfg             *BackendConfig
+	User                   string
+	SSHThreads             int
+	SSHConnectTimeout      int
+	PingCount              int
+	RemoteTmpdir           string
+	Mode                   string
+	RaiseType              string
+	Delay                  int
+	RCfile                 string
+	CacheDir               string
+	CacheTTL               time.Duration
+	Debug                  bool
+	ProgressBar            bool
+	PrependHostnames       bool
+	LogFile                string
+	ExitConfirm            bool
+	ExecConfirm            bool
+	SudoInterpreter        string
+	SuInterpreter          string
+	Interpreter            string
+	PasswordManagerPath    string
+	PasswordManagerOptions map[string]string
+	LocalEnvironment       map[string]string
+	Distribute             string
 }
 
 const (
@@ -325,7 +326,19 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 		return nil, fmt.Errorf("Error configuring backend: backend type is not defined")
 	}
 
-	cfg.PasswordManagerPath, _ = props.GetString("passmgr.path")
+	cfg.PasswordManagerOptions = make(map[string]string)
+	if props.KeyExists("passmgr") {
+		pmgrkeys, err := props.Subkeys("passmgr")
+		if err == nil {
+			for _, key := range pmgrkeys {
+				if key == "path" {
+					cfg.PasswordManagerPath, _ = props.GetString("passmgr.path")
+				} else {
+					cfg.PasswordManagerOptions[key], _ = props.GetString(fmt.Sprintf("passmgr.%s", key))
+				}
+			}
+		}
+	}
 
 	envkeys, err := props.Subkeys("environ")
 	if err == nil {

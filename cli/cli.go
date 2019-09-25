@@ -122,7 +122,7 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 
 	if cfg.PasswordManagerPath != "" {
 		term.Warnf("Loading password manager from %s\n", cfg.PasswordManagerPath)
-		err = passmgr.Load(cfg.PasswordManagerPath)
+		err = passmgr.Load(cfg.PasswordManagerPath, cfg.PasswordManagerOptions)
 		if err != nil {
 			term.Errorf("Error initializing password manager: %s\n", err)
 		} else {
@@ -482,6 +482,5 @@ func (c *Cli) setDistributeType(dtr string) {
 		term.Errorf("Unknown distribute type: %s\n", dtr)
 		return
 	}
-	term.Successf("distribute_type set to %s\n", dtr)
 	remote.SetDistributeType(c.distributeType)
 }

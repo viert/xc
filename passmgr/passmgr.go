@@ -3,10 +3,9 @@ package passmgr
 import (
 	"fmt"
 	"plugin"
-)
 
-type initFunc func() error
-type acquireFunc func(string) string
+	"github.com/viert/xc/log"
+)
 
 const (
 	initFuncName    = "Init"
@@ -16,12 +15,12 @@ const (
 var (
 	p             *plugin.Plugin
 	initialized   bool
-	pluginInit    initFunc
-	pluginAcquire acquireFunc
+	pluginInit    func(map[string]string, func(string, ...interface{})) error
+	pluginAcquire func(string) string
 )
 
 // Load loads a password manager library
-func Load(filename string) error {
+func Load(filename string, options map[string]string) error {
 	var err error
 	p, err = plugin.Open(filename)
 	if err != nil {
@@ -32,7 +31,7 @@ func Load(filename string) error {
 	if err != nil {
 		return err
 	}
-	pluginInit, initialized = init.(initFunc)
+	pluginInit, initialized = init.(func(map[string]string, func(string, ...interface{})) error)
 	if !initialized {
 		return fmt.Errorf("invalid plugin `%s() error` function signature", initFuncName)
 	}
@@ -41,11 +40,15 @@ func Load(filename string) error {
 	if err != nil {
 		return err
 	}
-	pluginAcquire, initialized = acq.(acquireFunc)
+	pluginAcquire, initialized = acq.(func(string) string)
 	if !initialized {
 		return fmt.Errorf("invalid plugin `%s(string) string` function signature", acquireFuncName)
 	}
-	return nil
+
+	err = pluginInit(options, log.Debugf)
+	initialized = err == nil
+
+	return err
 }
 
 // GetPass returns password for a given host from password manager
