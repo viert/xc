@@ -22,6 +22,7 @@ log_file =
 raise = none
 exit_confirm = true
 exec_confirm = true
+distribute = tar
 
 [executer]
 ssh_threads = 50
@@ -88,6 +89,7 @@ type XCConfig struct {
 	Interpreter         string
 	PasswordManagerPath string
 	LocalEnvironment    map[string]string
+	Distribute          string
 }
 
 const (
@@ -111,6 +113,7 @@ const (
 	defaultInterpreter       = "/bin/bash"
 	defaultSudoInterpreter   = "sudo /bin/bash"
 	defaultSuInterpreter     = "su -"
+	defaultDistribute        = "tar"
 )
 
 var (
@@ -247,6 +250,12 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 		rt = defaultRaiseType
 	}
 	cfg.RaiseType = rt
+
+	dtr, err := props.GetString("main.distribute")
+	if err != nil {
+		dtr = defaultDistribute
+	}
+	cfg.Distribute = dtr
 
 	mode, err := props.GetString("main.mode")
 	if err != nil {

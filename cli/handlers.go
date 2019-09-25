@@ -49,6 +49,7 @@ func (c *Cli) setupCmdHandlers() {
 	c.handlers["c_runscript"] = c.doCRunScript
 	c.handlers["p_runscript"] = c.doPRunScript
 	c.handlers["use_password_manager"] = c.doUsePasswordManager
+	c.handlers["distribute_type"] = c.doDistributeType
 
 	commands := make([]string, len(c.handlers))
 	i := 0
@@ -146,6 +147,18 @@ func (c *Cli) doRaise(name string, argsLine string, args ...string) {
 		return
 	}
 	c.setRaiseType(args[0])
+}
+
+func (c *Cli) doDistributeType(name string, argsLine string, args ...string) {
+	if len(args) < 1 {
+		dtype := "scp"
+		if c.distributeType == remote.CTTar {
+			dtype = "tar"
+		}
+		term.Warnf("distribute_type is %s\n", dtype)
+		return
+	}
+	c.setDistributeType(args[0])
 }
 
 func (c *Cli) doPasswd(name string, argsLine string, args ...string) {

@@ -14,6 +14,7 @@ var (
 	currentUser               string
 	currentPassword           string
 	currentRaise              RaiseType
+	currentDistributeType     CopyType
 	currentUsePasswordManager bool
 	currentProgressBar        bool
 	currentPrependHostnames   bool
@@ -57,6 +58,11 @@ func SetUser(username string) {
 // SetRaise sets executer raise type
 func SetRaise(raise RaiseType) {
 	currentRaise = raise
+}
+
+// SetDistributeType sets executer distribute type
+func SetDistributeType(dtr CopyType) {
+	currentDistributeType = dtr
 }
 
 // SetPassword sets executer password

@@ -34,6 +34,7 @@ type Cli struct {
 	mode           execMode
 	user           string
 	raiseType      remote.RaiseType
+	distributeType remote.CopyType
 	raisePasswd    string
 	remoteTmpDir   string
 	delay          int
@@ -113,6 +114,7 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	cli.connectTimeout = cfg.SSHConnectTimeout
 	cli.remoteTmpDir = cfg.RemoteTmpdir
 	cli.setRaiseType(cfg.RaiseType)
+	cli.setDistributeType(cfg.Distribute)
 
 	// output
 	cli.outputFileName = ""
@@ -460,6 +462,7 @@ func (c *Cli) setRaiseType(rt string) {
 		c.raiseType = remote.RTNone
 	default:
 		term.Errorf("Unknown raise type: %s\n", rt)
+		return
 	}
 
 	if c.raiseType != currentRaiseType {
@@ -467,4 +470,18 @@ func (c *Cli) setRaiseType(rt string) {
 		c.raisePasswd = ""
 	}
 	remote.SetRaise(c.raiseType)
+}
+
+func (c *Cli) setDistributeType(dtr string) {
+	switch dtr {
+	case "tar":
+		c.distributeType = remote.CTTar
+	case "scp":
+		c.distributeType = remote.CTScp
+	default:
+		term.Errorf("Unknown distribute type: %s\n", dtr)
+		return
+	}
+	term.Successf("distribute_type set to %s\n", dtr)
+	remote.SetDistributeType(c.distributeType)
 }

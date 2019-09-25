@@ -24,6 +24,7 @@ func newCompleter(store *store.Store, commands []string) *completer {
 	x.handlers["debug"] = onOffCompleter()
 	x.handlers["progressbar"] = onOffCompleter()
 	x.handlers["prepend_hostnames"] = onOffCompleter()
+	x.handlers["use_password_manager"] = onOffCompleter()
 	x.handlers["raise"] = staticCompleter([]string{"none", "su", "sudo"})
 	x.handlers["interpreter"] = staticCompleter([]string{"none", "su", "sudo"})
 	x.handlers["exec"] = x.completeExec
@@ -39,6 +40,7 @@ func newCompleter(store *store.Store, commands []string) *completer {
 	x.handlers["s_runscript"] = x.completeDistribute
 	x.handlers["c_runscript"] = x.completeDistribute
 	x.handlers["p_runscript"] = x.completeDistribute
+	x.handlers["distribute_type"] = staticCompleter([]string{"tar", "scp"})
 
 	helpTopics := append(commands, "expressions", "config", "rcfiles", "passmgr")
 	x.handlers["help"] = staticCompleter(helpTopics)
