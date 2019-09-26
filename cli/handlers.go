@@ -276,27 +276,31 @@ func (c *Cli) doDelay(name string, argsLine string, args ...string) {
 }
 
 func (c *Cli) doDebug(name string, argsLine string, args ...string) {
-	doOnOff("debug", &c.debug, args)
-	remote.SetDebug(c.debug)
+	if doOnOff("debug", &c.debug, args) {
+		remote.SetDebug(c.debug)
+	}
 }
 
 func (c *Cli) doProgressBar(name string, argsLine string, args ...string) {
-	doOnOff("progressbar", &c.progressBar, args)
-	remote.SetProgressBar(c.progressBar)
+	if doOnOff("progressbar", &c.progressBar, args) {
+		remote.SetProgressBar(c.progressBar)
+	}
 }
 
 func (c *Cli) doPrependHostnames(name string, argsLine string, args ...string) {
-	doOnOff("prepend_hostnames", &c.prependHostnames, args)
-	remote.SetPrependHostnames(c.prependHostnames)
+	if doOnOff("prepend_hostnames", &c.prependHostnames, args) {
+		remote.SetPrependHostnames(c.prependHostnames)
+	}
 }
 
 func (c *Cli) doUsePasswordManager(name string, argsLine string, args ...string) {
-	doOnOff("use_password_manager", &c.usePasswordMgr, args)
-	if c.usePasswordMgr && !passmgr.Ready() {
-		term.Errorf("Password manager is not ready\n")
-		c.usePasswordMgr = false
+	if doOnOff("use_password_manager", &c.usePasswordMgr, args) {
+		if c.usePasswordMgr && !passmgr.Ready() {
+			term.Errorf("Password manager is not ready\n")
+			c.usePasswordMgr = false
+		}
+		remote.SetUsePasswordManager(c.usePasswordMgr)
 	}
-	remote.SetUsePasswordManager(c.usePasswordMgr)
 }
 
 func (c *Cli) doReload(name string, argsLine string, args ...string) {

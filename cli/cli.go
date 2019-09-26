@@ -129,13 +129,13 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 			cli.usePasswordMgr = true
 		}
 	}
-
 	remote.Initialize(cli.sshThreads, cli.user)
 	remote.SetPrependHostnames(cli.prependHostnames)
 	remote.SetRemoteTmpdir(cfg.RemoteTmpdir)
 	remote.SetProgressBar(cli.progressBar)
 	remote.SetConnectTimeout(cli.connectTimeout)
 	remote.SetDebug(cli.debug)
+	remote.SetUsePasswordManager(cli.usePasswordMgr)
 
 	// interpreter
 	cli.setInterpreter("none", cfg.Interpreter)
@@ -185,7 +185,7 @@ func (c *Cli) setPrompt() {
 	}
 
 	if rts != "" {
-		if c.raisePasswd == "" {
+		if c.raisePasswd == "" && !c.usePasswordMgr {
 			rts += "*"
 			rtbold = true
 		}
@@ -431,14 +431,14 @@ func (c *Cli) dorunscript(mode execMode, argsLine string) {
 	r.Print()
 }
 
-func doOnOff(propName string, propRef *bool, args []string) {
+func doOnOff(propName string, propRef *bool, args []string) bool {
 	if len(args) < 1 {
 		value := "off"
 		if *propRef {
 			value = "on"
 		}
 		term.Warnf("%s is %s\n", propName, value)
-		return
+		return false
 	}
 	switch args[0] {
 	case "on":
@@ -447,8 +447,9 @@ func doOnOff(propName string, propRef *bool, args []string) {
 		*propRef = false
 	default:
 		term.Errorf("Invalid %s vaue. Please use either \"on\" or \"off\"\n", propName)
-		return
+		return false
 	}
+	return true
 }
 
 func (c *Cli) setRaiseType(rt string) {
