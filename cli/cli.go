@@ -113,8 +113,6 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	cli.debug = cfg.Debug
 	cli.connectTimeout = cfg.SSHConnectTimeout
 	cli.remoteTmpDir = cfg.RemoteTmpdir
-	cli.setRaiseType(cfg.RaiseType)
-	cli.setDistributeType(cfg.Distribute)
 
 	// output
 	cli.outputFileName = ""
@@ -141,6 +139,9 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	cli.setInterpreter("none", cfg.Interpreter)
 	cli.setInterpreter("sudo", cfg.SudoInterpreter)
 	cli.setInterpreter("su", cfg.SuInterpreter)
+
+	cli.setRaiseType(cfg.RaiseType)
+	cli.setDistributeType(cfg.Distribute)
 
 	cli.curDir, err = os.Getwd()
 	if err != nil {
