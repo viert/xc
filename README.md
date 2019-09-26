@@ -99,3 +99,42 @@ url = http://v7.inventoree.ru
 work_groups = ...
 auth_token = ...
 ```
+
+## Password manager
+
+In some cases, it's handy to keep su/sudo passwords for hosts somewhere and use them instead of typing in proper password within xc itself any time you need it. There is a possibility to write a password manager for xc in form of a Go plugin:
+
+```go
+package main
+
+var (
+	log func(string, ...interface{})
+)
+
+// Init initializes the plugin
+func Init(options map[string]string, debugf func(string, ...interface{})) error {
+	log = debugf
+	return nil
+}
+
+// GetPass returns password for a given hostname
+func GetPass(hostname string) string {
+	return "MySup3rP@ssw0rd"
+}
+
+func main() {}
+```
+
+To build such a plugin use `go build -buildmode=plugin passmgr.go` command. This will provide a .so file, i.e. dynamic library. To configure xc to use it as a password manager, add the following section to the xc configuration file:
+
+```
+[passmgr]
+path = /path/to/your/passmgr.so
+option1 = value1
+option2 = value2
+```
+
+The only mandatory option is `path` which is used to load your library by xc itself. Any option besides that will be passed in as the first argument to your `Init()` function. The second argument is a reference to xc's logger debugf which you can use to write to xc's log file. Returning anything except `nil` from the Init function will cause xc to consider the initialization failed and not use the password manager. 
+
+Any time xc needs a password for a host, the `GetPass(hostname string)string` function is called. This behaviour may be temporarily turned off by typing `use_password_manager off`.
+
