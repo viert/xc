@@ -5,6 +5,7 @@ import (
 	"plugin"
 
 	"github.com/viert/xc/log"
+	"github.com/viert/xc/term"
 )
 
 const (
@@ -13,15 +14,21 @@ const (
 )
 
 var (
-	p             *plugin.Plugin
-	initialized   bool
-	pluginInit    func(map[string]string, func(string, ...interface{})) error
-	pluginAcquire func(string) string
+	p               *plugin.Plugin
+	initialFilename string
+	initialOptions  map[string]string
+	initialized     bool
+	pluginInit      func(map[string]string, func(string, ...interface{})) error
+	pluginAcquire   func(string) string
 )
 
 // Load loads a password manager library
 func Load(filename string, options map[string]string) error {
 	var err error
+
+	initialFilename = filename
+	initialOptions = options
+
 	p, err = plugin.Open(filename)
 	if err != nil {
 		return err
@@ -62,4 +69,33 @@ func GetPass(hostname string) string {
 // Ready returns a bool value indicating if the passmgr is initialized and ready to use
 func Ready() bool {
 	return initialized
+}
+
+// Reload reloads previously initialized plugin
+func Reload() error {
+	term.Warnf("Reloading password manager from %s\n", initialFilename)
+	return Load(initialFilename, initialOptions)
+}
+
+// PrintDebug proxies a call to plugin's PrintDebug function if it exists
+func PrintDebug() {
+	if !initialized {
+		term.Errorf("password manager is not initialized\n")
+		return
+	}
+
+	printsym, err := p.Lookup("PrintDebug")
+	if err != nil {
+		term.Errorf("the password manager doesn't have PrintDebug() handler\n")
+		return
+	}
+
+	printfunc, ok := printsym.(func())
+	if !ok {
+		term.Errorf("the passwordd manager PrintDebug() handler has invalid signature (must be func())\n")
+		return
+	}
+	term.Warnf("running password manager PrintDebug()\n")
+	printfunc()
+	fmt.Println()
 }

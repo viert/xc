@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"github.com/viert/xc/passmgr"
-
 	"github.com/viert/xc/remote"
 	"github.com/viert/xc/term"
 )
@@ -50,6 +49,7 @@ func (c *Cli) setupCmdHandlers() {
 	c.handlers["p_runscript"] = c.doPRunScript
 	c.handlers["use_password_manager"] = c.doUsePasswordManager
 	c.handlers["distribute_type"] = c.doDistributeType
+	c.handlers["_passmgr_debug"] = c.doPassmgrDebug
 
 	commands := make([]string, len(c.handlers))
 	i := 0
@@ -299,6 +299,9 @@ func (c *Cli) doUsePasswordManager(name string, argsLine string, args ...string)
 			term.Errorf("Password manager is not ready\n")
 			c.usePasswordMgr = false
 		}
+		if c.usePasswordMgr {
+			passmgr.Reload()
+		}
 		remote.SetUsePasswordManager(c.usePasswordMgr)
 	}
 }
@@ -462,4 +465,8 @@ func (c *Cli) doCRunScript(name string, argsLine string, args ...string) {
 
 func (c *Cli) doPRunScript(name string, argsLine string, args ...string) {
 	c.dorunscript(emParallel, argsLine)
+}
+
+func (c *Cli) doPassmgrDebug(name string, argsLine string, args ...string) {
+	passmgr.PrintDebug()
 }

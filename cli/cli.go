@@ -440,6 +440,7 @@ func doOnOff(propName string, propRef *bool, args []string) bool {
 		term.Warnf("%s is %s\n", propName, value)
 		return false
 	}
+	prev := *propRef
 	switch args[0] {
 	case "on":
 		*propRef = true
@@ -449,7 +450,7 @@ func doOnOff(propName string, propRef *bool, args []string) bool {
 		term.Errorf("Invalid %s vaue. Please use either \"on\" or \"off\"\n", propName)
 		return false
 	}
-	return true
+	return prev != *propRef
 }
 
 func (c *Cli) setRaiseType(rt string) {
