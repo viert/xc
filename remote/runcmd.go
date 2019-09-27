@@ -26,12 +26,14 @@ func (w *Worker) runcmd(task *Task) int {
 
 	ptmx, err := pty.Start(cmd)
 	if err != nil {
+		log.Debugf("WRK[%d]: Error creating ptmx: %v", w.id, err)
 		return ErrTerminalError
 	}
 	defer ptmx.Close()
 
 	fd, err := poller.NewFD(int(ptmx.Fd()))
 	if err != nil {
+		log.Debugf("WRK[%d]: Error creating poller FD: %v", w.id, err)
 		return ErrTerminalError
 	}
 	defer fd.Close()
@@ -64,6 +66,7 @@ execLoop:
 		if err != nil {
 			if err != poller.ErrTimeout {
 				// EOF, done
+				log.Debugf("WRK[%d]: error reading process output: %v", w.id, err)
 				break
 			} else {
 				continue
@@ -82,7 +85,10 @@ execLoop:
 			// Trying to find Password prompt in first 5 chunks of data from server
 			if msgCount < 5 {
 				if !passwordSent && exPasswdPrompt.Match(chunk) {
-					ptmx.Write([]byte(password + "\n"))
+					_, err := ptmx.Write([]byte(password + "\n"))
+					if err != nil {
+						log.Debugf("WRK[%d]: Error sending password: %v", w.id, err)
+					}
 					passwordSent = true
 					shouldSkipEcho = true
 					continue
@@ -120,7 +126,10 @@ execLoop:
 
 	exitCode := 0
 	if taskForceStopped {
-		cmd.Process.Kill()
+		err = cmd.Process.Kill()
+		if err != nil {
+			log.Debugf("WRK[%d]: Error killing the process: %v", w.id, err)
+		}
 		exitCode = ErrForceStop
 		log.Debugf("WRK[%d]: Task on %s was force stopped", w.id, task.Hostname)
 	}
