@@ -19,24 +19,32 @@ func (w *Worker) runcmd(task *Task) int {
 		n            int
 		password     string
 		passwordSent bool
+		ptmx         *os.File
+		fd           *poller.FD
 	)
 
 	cmd := createSSHCmd(task.Hostname, task.Cmd)
 	cmd.Env = append(os.Environ(), environment...)
 
-	ptmx, err := pty.Start(cmd)
+	// threadsafe acquiring necessary file descriptors
+	ptyLock.Lock()
+	ptmx, err = pty.Start(cmd)
 	if err != nil {
 		log.Debugf("WRK[%d]: Error creating ptmx: %v", w.id, err)
+		ptyLock.Unlock()
 		return ErrTerminalError
 	}
 	defer ptmx.Close()
 
-	fd, err := poller.NewFD(int(ptmx.Fd()))
+	fd, err = poller.NewFD(int(ptmx.Fd()))
 	if err != nil {
 		log.Debugf("WRK[%d]: Error creating poller FD: %v", w.id, err)
+		ptyLock.Unlock()
 		return ErrTerminalError
 	}
 	defer fd.Close()
+	ptyLock.Unlock()
+	// threadsafe acquiring necessary file descriptors ends
 
 	buf := make([]byte, bufferSize)
 	taskForceStopped := false
