@@ -35,33 +35,37 @@ func (w *Worker) runcmd(task *Task) int {
 		log.Debugf("WRK[%d]: error creating stdout pipe: %s", w.id, err)
 		return ErrTerminalError
 	}
-	defer sout.Close()
 
 	serr, err = cmd.StderrPipe()
 	if err != nil {
 		log.Debugf("WRK[%d]: error creating stderr pipe: %s", w.id, err)
 		return ErrTerminalError
 	}
-	defer serr.Close()
 
 	sin, err = cmd.StdinPipe()
 	if err != nil {
 		log.Debugf("WRK[%d]: error creating stdin pipe: %s", w.id, err)
 		return ErrTerminalError
 	}
-	defer sin.Close()
 
 	soutFile, _ := sout.(*os.File)
 	serrFile, _ := serr.(*os.File)
 
+	log.Debugf("WRK[%d]: command fds are out=%d, err=%d", w.id, soutFile.Fd(), serrFile.Fd())
+
 	fdout, err = poller.NewFD(int(soutFile.Fd()))
 	if err != nil {
 		log.Debugf("WRK[%d]: error creating stdout poller: %v", w.id, err)
+		log.Debugf("WRK[%d]: closing stdout fd=%d, err=%v", w.id, soutFile.Fd(), sout.Close())
+		log.Debugf("WRK[%d]: closing stderr fd=%d, err=%v", w.id, serrFile.Fd(), serr.Close())
 		return ErrTerminalError
 	}
 	fderr, err = poller.NewFD(int(serrFile.Fd()))
 	if err != nil {
 		log.Debugf("WRK[%d]: error creating stderr poller: %v", w.id, err)
+		log.Debugf("WRK[%d]: closing poller fdout as it's already been created, err=%v", w.id, fdout.Close())
+		log.Debugf("WRK[%d]: closing stdout fd=%d, err=%v", w.id, soutFile.Fd(), sout.Close())
+		log.Debugf("WRK[%d]: closing stderr fd=%d, err=%v", w.id, serrFile.Fd(), serr.Close())
 		return ErrTerminalError
 	}
 
@@ -89,8 +93,10 @@ func (w *Worker) runcmd(task *Task) int {
 		msg := fmt.Sprintf("error starting command: %v", err)
 		log.Debugf("WRK[%d]: %s", w.id, msg)
 		w.data <- &Message{[]byte(msg + "\n"), MTData, task.Hostname, -1}
-		fderr.Close()
-		fdout.Close()
+		log.Debugf("WRK[%d]: closing stdout poller, err=%v", w.id, fdout.Close())
+		log.Debugf("WRK[%d]: closing stderr poller, err=%v", w.id, fderr.Close())
+		log.Debugf("WRK[%d]: closing stdout fd=%d, err=%v", w.id, soutFile.Fd(), sout.Close())
+		log.Debugf("WRK[%d]: closing stderr fd=%d, err=%v", w.id, serrFile.Fd(), serr.Close())
 		return ErrTerminalError
 	}
 
@@ -198,10 +204,8 @@ execLoop:
 		}
 	}
 
-	log.Debugf("WRK[%d]: going to close stderr pollerfd=%d, sysfd=%d", fderr.Sysfd(), serrFile.Fd())
-	fderr.Close()
-	log.Debugf("WRK[%d]: going to close stdout pollerfd=%d, sysfd=%d", fdout.Sysfd(), soutFile.Fd())
-	fdout.Close()
+	log.Debugf("WRK[%d]: closing stdout poller, err=%v", w.id, fdout.Close())
+	log.Debugf("WRK[%d]: closing stderr poller, err=%v", w.id, fderr.Close())
 
 	exitCode := 0
 	if taskForceStopped {
