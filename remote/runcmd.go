@@ -66,13 +66,11 @@ func (w *Worker) runcmd(task *Task) int {
 		log.Debugf("WRK[%d]: error creating stdout poller: %v", w.id, err)
 		return ErrTerminalError
 	}
-	defer fdout.Close()
 	fderr, err = poller.NewFD(int(serrFile.Fd()))
 	if err != nil {
 		log.Debugf("WRK[%d]: error creating stderr poller: %v", w.id, err)
 		return ErrTerminalError
 	}
-	defer fderr.Close()
 
 	buf := make([]byte, bufferSize)
 	taskForceStopped := false
@@ -196,6 +194,8 @@ execLoop:
 
 	}
 
+    fderr.Close()
+    fdout.Close()
 	exitCode := 0
 	if taskForceStopped {
 		err = cmd.Process.Kill()

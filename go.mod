@@ -18,7 +18,7 @@ require (
 	golang.org/x/crypto v0.0.0-20190926180335-cea2066c6411
 	golang.org/x/net v0.0.0-20190926025831-c00fd9afed17 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
-	golang.org/x/sys v0.0.0-20190927073244-c990c680b611 // indirect
+	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20190927052746-69890759d905 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
