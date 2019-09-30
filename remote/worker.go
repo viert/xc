@@ -254,12 +254,13 @@ func (w *Worker) processStderr(rd io.ReadCloser, wr io.WriteCloser, finished *bo
 
 func (w *Worker) processStdout(rd io.ReadCloser, wr io.WriteCloser, finished *bool, task *Task) {
 	var (
-		n            int
-		msgCount     int
-		err          error
-		buf          []byte
-		password     string
-		passwordSent bool
+		n              int
+		msgCount       int
+		err            error
+		buf            []byte
+		password       string
+		passwordSent   bool
+		shouldSkipEcho bool
 	)
 
 	w.log("starting stdout processor for host %s", task.Hostname)

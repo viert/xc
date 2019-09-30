@@ -17,11 +17,6 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-var (
-	passwordSent   = false
-	shouldSkipEcho = false
-)
-
 func forwardUserInput(in *poller.FD, out *os.File, stopped *bool) {
 	inBuf := make([]byte, bufferSize)
 	// processing stdin
@@ -45,7 +40,7 @@ func forwardUserInput(in *poller.FD, out *os.File, stopped *bool) {
 	}
 }
 
-func interceptProcessOutput(in []byte, ptmx *os.File, password string) (out []byte, err error) {
+func interceptProcessOutput(in []byte, ptmx *os.File, password string, passwordSent *bool, shouldSkipEcho *bool) (out []byte, err error) {
 	out = []byte{}
 	err = nil
 
@@ -65,22 +60,22 @@ func interceptProcessOutput(in []byte, ptmx *os.File, password string) (out []by
 		return
 	}
 
-	if !passwordSent && exPasswdPrompt.Match(in) {
+	if !*passwordSent && exPasswdPrompt.Match(in) {
 		ptmx.Write([]byte(password + "\n"))
-		passwordSent = true
-		shouldSkipEcho = true
+		*passwordSent = true
+		*shouldSkipEcho = true
 		log.Debug("Password sent")
 		return
 	}
 
-	if shouldSkipEcho && exEcho.Match(in) {
+	if *shouldSkipEcho && exEcho.Match(in) {
 		log.Debug("Echo skipped")
-		shouldSkipEcho = false
+		*shouldSkipEcho = false
 		out = exEcho.ReplaceAll(in, []byte{})
 		return
 	}
 
-	if passwordSent && exWrongPassword.Match(in) {
+	if *passwordSent && exWrongPassword.Match(in) {
 		log.Debug("Authentication error while raising privileges")
 		err = fmt.Errorf("auth_error")
 		return
@@ -98,7 +93,9 @@ func runAtHost(host string, cmd *exec.Cmd, r *ExecResult) {
 		err      error
 		password string
 
-		stopped = false
+		passwordSent   = false
+		shouldSkipEcho = false
+		stopped        = false
 	)
 
 	password = currentPassword
@@ -164,7 +161,7 @@ func runAtHost(host string, cmd *exec.Cmd, r *ExecResult) {
 		n, err := ptmx.Read(buf)
 		if n > 0 {
 			// TODO random stuff with intercepting and omitting data
-			data, err := interceptProcessOutput(buf[:n], ptmx, password)
+			data, err := interceptProcessOutput(buf[:n], ptmx, password, &passwordSent, &shouldSkipEcho)
 			if err != nil {
 				// auth error, can't proceed
 				raise := "su"
