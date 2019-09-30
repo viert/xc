@@ -49,6 +49,10 @@ func interceptProcessOutput(in []byte, ptmx *os.File, password string) (out []by
 	out = []byte{}
 	err = nil
 
+	if currentDebug {
+		log.Debugf("DATASTREAM: %s", string(in))
+	}
+
 	if exConnectionClosed.Match(in) {
 		log.Debug("Connection closed message catched")
 		return
