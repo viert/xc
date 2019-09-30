@@ -138,6 +138,7 @@ func runAtHost(host string, cmd *exec.Cmd, r *ExecResult) {
 		r.Codes[host] = ErrTerminalError
 		return
 	}
+
 	defer func() {
 		log.Debug("Setting stdin back to blocking mode")
 		si.Close()
@@ -188,6 +189,7 @@ func runAtHost(host string, cmd *exec.Cmd, r *ExecResult) {
 		}
 
 		if err != nil && err != poller.ErrTimeout {
+			log.Debugf("pty read error: %v", err)
 			stopped = true
 			break
 		}
@@ -231,7 +233,6 @@ execLoop:
 		if argv != "" {
 			remoteCmd = fmt.Sprintf("%s.%s.sh", remotePrefix, host)
 			cmd = createSCPCmd(host, local, remoteCmd, false)
-			log.Debugf("Created SCP command: %v", cmd)
 			signal.Notify(sigs, syscall.SIGINT)
 			err = cmd.Run()
 			signal.Reset()
