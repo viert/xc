@@ -54,11 +54,13 @@ func interceptProcessOutput(in []byte, ptmx *os.File, password string) (out []by
 	}
 
 	if exConnectionClosed.Match(in) {
+		out = exConnectionClosed.ReplaceAll(in, []byte{})
 		log.Debug("Connection closed message catched")
 		return
 	}
 
 	if exLostConnection.Match(in) {
+		out = exLostConnection.ReplaceAll(in, []byte{})
 		log.Debug("Lost connection message catched")
 		return
 	}
@@ -74,6 +76,7 @@ func interceptProcessOutput(in []byte, ptmx *os.File, password string) (out []by
 	if shouldSkipEcho && exEcho.Match(in) {
 		log.Debug("Echo skipped")
 		shouldSkipEcho = false
+		out = exEcho.ReplaceAll(in, []byte{})
 		return
 	}
 
