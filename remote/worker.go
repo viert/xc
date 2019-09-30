@@ -1,11 +1,18 @@
 package remote
 
 import (
+	"bytes"
+	"fmt"
+	"io"
+	"os"
+	"os/exec"
 	"regexp"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/viert/xc/log"
+	"github.com/viert/xc/passmgr"
 )
 
 // RaiseType enum
@@ -64,6 +71,7 @@ const (
 	ErrCopyFailed
 	ErrTerminalError
 	ErrAuthenticationError
+	ErrCommandStartFailed
 )
 
 const (
@@ -185,4 +193,200 @@ func (w *Worker) forceStopped() bool {
 	default:
 		return false
 	}
+}
+
+func (w *Worker) log(format string, args ...interface{}) {
+	format = fmt.Sprintf("WRK[%d]: %s", w.id, format)
+	log.Debugf(format, args...)
+}
+
+func (w *Worker) processStderr(rd io.ReadCloser, wr io.WriteCloser, finished *bool, task *Task) {
+	var (
+		n   int
+		err error
+		buf []byte
+	)
+
+	buf = make([]byte, bufferSize)
+	w.log("starting stderr processor for host %s", task.Hostname)
+	for {
+		n, err = rd.Read(buf)
+		if err != nil {
+			*finished = true
+			break
+		}
+
+		if n > 0 {
+			w.data <- &Message{buf[:n], MTDebug, task.Hostname, -1}
+			chunks := bytes.SplitAfter(buf[:n], []byte{'\n'})
+			for _, chunk := range chunks {
+				if len(chunk) == 0 {
+					continue
+				}
+
+				if exConnectionClosed.Match(chunk) {
+					w.log("expr connection closed on stderr")
+					continue
+				}
+
+				if exLostConnection.Match(chunk) {
+					w.log("expr lost connection on stderr")
+					continue
+				}
+				// avoiding passing loop variable further as it's going to change its contents
+				data := make([]byte, len(chunk))
+				copy(data, chunk)
+				w.data <- &Message{data, MTData, task.Hostname, -1}
+
+			}
+		}
+	}
+	w.log("exiting stderr processor for host %s", task.Hostname)
+}
+
+func (w *Worker) processStdout(rd io.ReadCloser, wr io.WriteCloser, finished *bool, task *Task) {
+	var (
+		n            int
+		msgCount     int
+		err          error
+		buf          []byte
+		password     string
+		passwordSent bool
+	)
+
+	w.log("starting stdout processor for host %s", task.Hostname)
+	buf = make([]byte, bufferSize)
+	msgCount = 0
+
+	if currentRaise != RTNone {
+		passwordSent = false
+		if currentUsePasswordManager {
+			password = passmgr.GetPass(task.Hostname)
+		} else {
+			password = currentPassword
+		}
+	} else {
+		passwordSent = true
+	}
+
+execLoop:
+	for {
+		n, err = rd.Read(buf)
+		if err != nil {
+			*finished = true
+			break
+		}
+
+		if n > 0 {
+			w.data <- &Message{buf[:n], MTDebug, task.Hostname, -1}
+			msgCount++
+
+			chunks := bytes.SplitAfter(buf[:n], []byte{'\n'})
+			for _, chunk := range chunks {
+				// Trying to find Password prompt in first 5 chunks of data from server
+				if msgCount < 5 {
+					if !passwordSent && exPasswdPrompt.Match(chunk) {
+						_, err := wr.Write([]byte(password + "\n"))
+						if err != nil {
+							w.log("error sending password: %v", err)
+						}
+						passwordSent = true
+						shouldSkipEcho = true
+						continue
+					}
+					if shouldSkipEcho && exEcho.Match(chunk) {
+						shouldSkipEcho = false
+						continue
+					}
+					if passwordSent && exWrongPassword.Match(chunk) {
+						w.data <- &Message{[]byte("sudo: Authentication failure\n"), MTData, task.Hostname, -1}
+						*finished = true
+						break execLoop
+					}
+				}
+
+				if len(chunk) == 0 {
+					continue
+				}
+
+				// avoiding passing loop variable further as it's going to change its contents
+				data := make([]byte, len(chunk))
+				copy(data, chunk)
+				w.data <- &Message{data, MTData, task.Hostname, -1}
+			}
+		}
+	}
+	w.log("exiting stdout processor for host %s", task.Hostname)
+}
+
+func (w *Worker) _run(task *Task, cmd *exec.Cmd) int {
+	cmd.Env = append(os.Environ(), environment...)
+
+	sout, err := cmd.StdoutPipe()
+	if err != nil {
+		w.log("error creating stdout pipe: %v", err)
+		return ErrTerminalError
+	}
+
+	serr, err := cmd.StderrPipe()
+	if err != nil {
+		w.log("error creating stderr pipe: %v", err)
+		w.log("closing stdout pipe, err=%v", sout.Close())
+		return ErrTerminalError
+	}
+
+	sin, err := cmd.StdinPipe()
+	if err != nil {
+		w.log("error creating stdin pipe: %v", err)
+		w.log("closing stderr pipe, err=%v", serr.Close())
+		w.log("closing stdout pipe, err=%v", sout.Close())
+		return ErrTerminalError
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		w.log("error starting cmd: %v", err)
+		w.log("closing stderr pipe, err=%v", serr.Close())
+		w.log("closing stdout pipe, err=%v", sout.Close())
+		w.log("closing stdin pipe, err=%v", sin.Close())
+		return ErrCommandStartFailed
+	}
+
+	stdoutFinished := false
+	stderrFinished := false
+	taskForceStopped := false
+	go w.processStdout(sout, sin, &stdoutFinished, task)
+	go w.processStderr(serr, sin, &stderrFinished, task)
+
+	for !(stdoutFinished && stderrFinished) {
+		if w.forceStopped() {
+			taskForceStopped = true
+			err = cmd.Process.Kill()
+			if err != nil {
+				w.log("error killing process: %v", err)
+			}
+			break
+		}
+		time.Sleep(pollDeadline)
+	}
+
+	exitCode := 0
+	w.log("out of waitloop running cmd.Wait to cleanup")
+	err = cmd.Wait()
+
+	if taskForceStopped {
+		return ErrForceStop
+	}
+
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			ws := exitErr.Sys().(syscall.WaitStatus)
+			exitCode = ws.ExitStatus()
+		} else {
+			// MacOS hack
+			exitCode = ErrMacOsExit
+		}
+	}
+	w.log("Task on %s exit coded is %d", task.Hostname, exitCode)
+	return exitCode
 }
