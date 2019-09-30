@@ -2,6 +2,7 @@ package remote
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -91,7 +92,15 @@ func (w *Worker) runcmd(task *Task) int {
 	stdoutFinished := false
 	stderrFinished := false
 
-	cmd.Start()
+	err = cmd.Start()
+	if err != nil {
+		msg := fmt.Sprintf("error starting command: %v", err)
+		log.Debugf("WRK[%d]: %s", w.id, msg)
+		w.data <- &Message{[]byte(msg + "\n"), MTData, task.Hostname, -1}
+		fderr.Close()
+		fdout.Close()
+		return ErrTerminalError
+	}
 
 execLoop:
 	for !(stdoutFinished && stderrFinished) {
@@ -194,16 +203,21 @@ execLoop:
 
 	}
 
-    fderr.Close()
-    fdout.Close()
+	fderr.Close()
+	fdout.Close()
+
 	exitCode := 0
 	if taskForceStopped {
-		err = cmd.Process.Kill()
-		if err != nil {
-			log.Debugf("WRK[%d]: Error killing the process: %v", w.id, err)
+		if cmd.Process != nil {
+			err = cmd.Process.Kill()
+			if err != nil {
+				log.Debugf("WRK[%d]: Error killing the process: %v", w.id, err)
+			}
+			exitCode = ErrForceStop
+			log.Debugf("WRK[%d]: Task on %s was force stopped", w.id, task.Hostname)
+		} else {
+			log.Debugf("WRK[%d]: Cmd process is unexpectedly nil! cmd.Path is %s", w.id, cmd.Path)
 		}
-		exitCode = ErrForceStop
-		log.Debugf("WRK[%d]: Task on %s was force stopped", w.id, task.Hostname)
 	}
 
 	err = cmd.Wait()
