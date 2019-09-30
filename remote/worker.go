@@ -295,8 +295,9 @@ execLoop:
 					w.log("STDOUT CHUNK IN @ %s: %v %s", task.Hostname, chunk, string(chunk))
 				}
 				// Trying to find Password prompt in first 5 chunks of data from server
-				if msgCount < 5 {
+				if msgCount < 10 {
 					if !passwordSent && exPasswdPrompt.Match(chunk) {
+						w.log("sending password for %s, msgCount=%d", task.Hostname, msgCount)
 						_, err := wr.Write([]byte(password + "\n"))
 						if err != nil {
 							w.log("error sending password: %v", err)
@@ -305,15 +306,16 @@ execLoop:
 						shouldSkipEcho = true
 						continue
 					}
-					if shouldSkipEcho && exEcho.Match(chunk) {
-						shouldSkipEcho = false
-						continue
-					}
-					if passwordSent && exWrongPassword.Match(chunk) {
-						w.data <- &Message{[]byte("sudo: Authentication failure\n"), MTData, task.Hostname, -1}
-						*finished = true
-						break execLoop
-					}
+				}
+
+				if shouldSkipEcho && exEcho.Match(chunk) {
+					shouldSkipEcho = false
+					continue
+				}
+				if passwordSent && exWrongPassword.Match(chunk) {
+					w.data <- &Message{[]byte("sudo: Authentication failure\n"), MTData, task.Hostname, -1}
+					*finished = true
+					break execLoop
 				}
 
 				if len(chunk) == 0 {
