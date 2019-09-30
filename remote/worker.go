@@ -220,22 +220,30 @@ func (w *Worker) processStderr(rd io.ReadCloser, wr io.WriteCloser, finished *bo
 			w.data <- &Message{buf[:n], MTDebug, task.Hostname, -1}
 			chunks := bytes.SplitAfter(buf[:n], []byte{'\n'})
 			for _, chunk := range chunks {
+				if currentDebug {
+					w.log("STDERR CHUNK IN @ %s: %v %s", task.Hostname, chunk, string(chunk))
+				}
+
+				if exConnectionClosed.Match(chunk) {
+					chunk = exConnectionClosed.ReplaceAll(chunk, []byte{})
+					w.log("expr connection closed on stderr")
+				}
+
+				if exLostConnection.Match(chunk) {
+					chunk = exLostConnection.ReplaceAll(chunk, []byte{})
+					w.log("expr lost connection on stderr")
+				}
+
 				if len(chunk) == 0 {
 					continue
 				}
 
-				if exConnectionClosed.Match(chunk) {
-					w.log("expr connection closed on stderr")
-					continue
-				}
-
-				if exLostConnection.Match(chunk) {
-					w.log("expr lost connection on stderr")
-					continue
-				}
 				// avoiding passing loop variable further as it's going to change its contents
 				data := make([]byte, len(chunk))
 				copy(data, chunk)
+				if currentDebug {
+					w.log("STDERR CHUNK OUT @ %s: %v %s", task.Hostname, data, string(data))
+				}
 				w.data <- &Message{data, MTData, task.Hostname, -1}
 
 			}
@@ -283,6 +291,9 @@ execLoop:
 
 			chunks := bytes.SplitAfter(buf[:n], []byte{'\n'})
 			for _, chunk := range chunks {
+				if currentDebug {
+					w.log("STDOUT CHUNK IN @ %s: %v %s", task.Hostname, chunk, string(chunk))
+				}
 				// Trying to find Password prompt in first 5 chunks of data from server
 				if msgCount < 5 {
 					if !passwordSent && exPasswdPrompt.Match(chunk) {
@@ -312,6 +323,9 @@ execLoop:
 				// avoiding passing loop variable further as it's going to change its contents
 				data := make([]byte, len(chunk))
 				copy(data, chunk)
+				if currentDebug {
+					w.log("STDOUT CHUNK OUT @ %s: %v %s", task.Hostname, data, string(data))
+				}
 				w.data <- &Message{data, MTData, task.Hostname, -1}
 			}
 		}
