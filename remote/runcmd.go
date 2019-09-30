@@ -51,16 +51,8 @@ func (w *Worker) runcmd(task *Task) int {
 	}
 	defer sin.Close()
 
-	soutFile, ok := sout.(*os.File)
-	if !ok {
-		log.Debugf("WRK[%d]: error getting process stdout file descriptor: %s", w.id)
-		return ErrTerminalError
-	}
-	serrFile, ok := serr.(*os.File)
-	if !ok {
-		log.Debugf("WRK[%d]: error getting process stderr file descriptor: %s", w.id)
-		return ErrTerminalError
-	}
+	soutFile, _ := sout.(*os.File)
+	serrFile, _ := serr.(*os.File)
 
 	fdout, err = poller.NewFD(int(soutFile.Fd()))
 	if err != nil {
@@ -113,97 +105,102 @@ execLoop:
 		fdout.SetDeadline(commonDeadline)
 		fderr.SetDeadline(commonDeadline)
 
-		n, err = fdout.Read(buf)
-		if err != nil {
-			if err != poller.ErrTimeout {
-				// EOF, done
-				log.Debugf("WRK[%d]: error reading process stdout: %v", w.id, err)
-				stdoutFinished = true
+		if !stdoutFinished {
+			n, err = fdout.Read(buf)
+			if err != nil {
+				if err != poller.ErrTimeout {
+					// EOF, done
+					log.Debugf("WRK[%d]: error reading process stdout: %v", w.id, err)
+					stdoutFinished = true
+				}
 			}
-		}
 
-		if n != 0 {
-			w.data <- &Message{buf[:n], MTDebug, task.Hostname, -1}
-			msgCount++
+			if n != 0 {
+				w.data <- &Message{buf[:n], MTDebug, task.Hostname, -1}
+				msgCount++
 
-			chunks := bytes.SplitAfter(buf[:n], []byte{'\n'})
-			for _, chunk := range chunks {
-				// Trying to find Password prompt in first 5 chunks of data from server
-				if msgCount < 5 {
-					if !passwordSent && exPasswdPrompt.Match(chunk) {
-						_, err := sin.Write([]byte(password + "\n"))
-						if err != nil {
-							log.Debugf("WRK[%d]: Error sending password: %v", w.id, err)
+				chunks := bytes.SplitAfter(buf[:n], []byte{'\n'})
+				for _, chunk := range chunks {
+					// Trying to find Password prompt in first 5 chunks of data from server
+					if msgCount < 5 {
+						if !passwordSent && exPasswdPrompt.Match(chunk) {
+							_, err := sin.Write([]byte(password + "\n"))
+							if err != nil {
+								log.Debugf("WRK[%d]: Error sending password: %v", w.id, err)
+							}
+							passwordSent = true
+							shouldSkipEcho = true
+							continue
 						}
-						passwordSent = true
-						shouldSkipEcho = true
+						if shouldSkipEcho && exEcho.Match(chunk) {
+							shouldSkipEcho = false
+							continue
+						}
+						if passwordSent && exWrongPassword.Match(chunk) {
+							w.data <- &Message{[]byte("sudo: Authentication failure\n"), MTData, task.Hostname, -1}
+							taskForceStopped = true
+							break execLoop
+						}
+
+					}
+
+					if len(chunk) == 0 {
 						continue
 					}
-					if shouldSkipEcho && exEcho.Match(chunk) {
-						shouldSkipEcho = false
+
+					if exConnectionClosed.Match(chunk) {
 						continue
 					}
-					if passwordSent && exWrongPassword.Match(chunk) {
-						w.data <- &Message{[]byte("sudo: Authentication failure\n"), MTData, task.Hostname, -1}
-						taskForceStopped = true
-						break execLoop
+
+					if exLostConnection.Match(chunk) {
+						continue
 					}
 
+					// avoiding passing loop variable further as it's going to change its contents
+					data := make([]byte, len(chunk))
+					copy(data, chunk)
+					w.data <- &Message{data, MTData, task.Hostname, -1}
 				}
-
-				if len(chunk) == 0 {
-					continue
-				}
-
-				if exConnectionClosed.Match(chunk) {
-					continue
-				}
-
-				if exLostConnection.Match(chunk) {
-					continue
-				}
-
-				// avoiding passing loop variable further as it's going to change its contents
-				data := make([]byte, len(chunk))
-				copy(data, chunk)
-				w.data <- &Message{data, MTData, task.Hostname, -1}
 			}
 		}
 
-		n, err = fderr.Read(buf)
-		if err != nil {
-			if err != poller.ErrTimeout {
-				// EOF, done
-				log.Debugf("WRK[%d]: error reading process stderr: %v", w.id, err)
-				stderrFinished = true
+		if !stderrFinished {
+			n, err = fderr.Read(buf)
+			if err != nil {
+				if err != poller.ErrTimeout {
+					// EOF, done
+					log.Debugf("WRK[%d]: error reading process stderr: %v", w.id, err)
+					stderrFinished = true
+				}
+			}
+
+			if n != 0 {
+				w.data <- &Message{buf[:n], MTDebug, task.Hostname, -1}
+				msgCount++
+
+				chunks := bytes.SplitAfter(buf[:n], []byte{'\n'})
+				for _, chunk := range chunks {
+					if len(chunk) == 0 {
+						continue
+					}
+					if exConnectionClosed.Match(chunk) {
+						continue
+					}
+					if exLostConnection.Match(chunk) {
+						continue
+					}
+					// avoiding passing loop variable further as it's going to change its contents
+					data := make([]byte, len(chunk))
+					copy(data, chunk)
+					w.data <- &Message{data, MTData, task.Hostname, -1}
+				}
 			}
 		}
-
-		if n != 0 {
-			w.data <- &Message{buf[:n], MTDebug, task.Hostname, -1}
-			msgCount++
-
-			chunks := bytes.SplitAfter(buf[:n], []byte{'\n'})
-			for _, chunk := range chunks {
-				if len(chunk) == 0 {
-					continue
-				}
-				if exConnectionClosed.Match(chunk) {
-					continue
-				}
-				if exLostConnection.Match(chunk) {
-					continue
-				}
-				// avoiding passing loop variable further as it's going to change its contents
-				data := make([]byte, len(chunk))
-				copy(data, chunk)
-				w.data <- &Message{data, MTData, task.Hostname, -1}
-			}
-		}
-
 	}
 
+	log.Debugf("WRK[%d]: going to close stderr pollerfd=%d, sysfd=%d", fderr.Sysfd(), serrFile.Fd())
 	fderr.Close()
+	log.Debugf("WRK[%d]: going to close stdout pollerfd=%d, sysfd=%d", fdout.Sysfd(), soutFile.Fd())
 	fdout.Close()
 
 	exitCode := 0
