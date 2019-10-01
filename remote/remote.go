@@ -22,7 +22,7 @@ var (
 	currentRemoteTmpdir       string
 	currentDebug              bool
 	outputFile                *os.File
-	ptyLock                   *sync.Mutex
+	poolLock                  *sync.Mutex
 
 	noneInterpreter string
 	suInterpreter   string
@@ -32,7 +32,7 @@ var (
 // Initialize initializes new execution pool
 func Initialize(numThreads int, username string) {
 	pool = NewPool(numThreads)
-	ptyLock = new(sync.Mutex)
+	poolLock = new(sync.Mutex)
 	SetUser(username)
 	SetPassword("")
 	SetRaise(RTNone)
