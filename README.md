@@ -90,7 +90,7 @@ work_groups = workgroup1,workgroup2
 
 ### Inventoree
 
-**Inventoree** backend utilizes the modern inventoree API v2 which is supported since inventoree 7.0. There's no specific handler for xc though so the data loading is performed in several steps. It's still faster than conductor backend as it doesn't rely on internal inventoree recursive data fetching. The configuration is similar to **conductor** however it's mandatory to configure `auth_token` option is inventoree doesn't have API handlers without authentication.
+**Inventoree** backend utilizes the modern inventoree API v2 which is supported since inventoree 7.0. There's no specific handler for xc though so the data loading is performed in several steps. It's still faster than conductor backend as it doesn't rely on internal inventoree recursive data fetching. The configuration is similar to **conductor** however it's mandatory to configure `auth_token` option as inventoree doesn't have API handlers without authentication.
 
 ```
 [backend]
