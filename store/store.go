@@ -19,8 +19,7 @@ type Store struct {
 	backend     Backend
 }
 
-func newStore() *Store {
-	s := new(Store)
+func (s *Store) reinitStore() {
 	s.datacenters = new(dcstore)
 	s.datacenters._id = make(map[string]*Datacenter)
 	s.datacenters.name = make(map[string]*Datacenter)
@@ -34,7 +33,6 @@ func newStore() *Store {
 	s.workgroups._id = make(map[string]*WorkGroup)
 	s.workgroups.name = make(map[string]*WorkGroup)
 	s.tags = make([]string, 0)
-	return s
 }
 
 func (s *Store) addHost(host *Host) {
@@ -373,33 +371,43 @@ func (s *Store) apply() {
 
 // CreateStore creates a new store and loads data from a given backend
 func CreateStore(backend Backend) (*Store, error) {
-	s := newStore()
+	s := new(Store)
 	s.backend = backend
-	err := backend.Load()
-	if err == nil {
-		for _, host := range backend.Hosts() {
-			s.addHost(host)
-		}
-		for _, group := range backend.Groups() {
-			s.addGroup(group)
-		}
-		for _, datacenter := range backend.Datacenters() {
-			s.addDatacenter(datacenter)
-		}
-		for _, workgroup := range backend.WorkGroups() {
-			s.addWorkGroup(workgroup)
-		}
-		s.apply()
-	}
+	err := s.BackendLoad()
 	return s, err
+}
+
+func (s *Store) copyBackendData() {
+	s.reinitStore()
+	for _, host := range s.backend.Hosts() {
+		s.addHost(host)
+	}
+	for _, group := range s.backend.Groups() {
+		s.addGroup(group)
+	}
+	for _, datacenter := range s.backend.Datacenters() {
+		s.addDatacenter(datacenter)
+	}
+	for _, workgroup := range s.backend.WorkGroups() {
+		s.addWorkGroup(workgroup)
+	}
+	s.apply()
 }
 
 // BackendLoad is a proxy to backend.Load handler
 func (s *Store) BackendLoad() error {
-	return s.backend.Load()
+	err := s.backend.Load()
+	if err == nil {
+		s.copyBackendData()
+	}
+	return err
 }
 
 // BackendReload is a proxy to backend.Reload handler
 func (s *Store) BackendReload() error {
-	return s.backend.Reload()
+	err := s.backend.Reload()
+	if err == nil {
+		s.copyBackendData()
+	}
+	return err
 }
