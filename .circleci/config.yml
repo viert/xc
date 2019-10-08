@@ -8,6 +8,6 @@ jobs:
       - checkout
       - run:
           name: Building XC
-          command: go build -o xc cmd/xc/main.go
+          command: ./build.sh
       - store_artifacts:
           path: /tmp/build/xc

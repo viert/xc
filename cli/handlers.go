@@ -50,6 +50,7 @@ func (c *Cli) setupCmdHandlers() {
 	c.handlers["use_password_manager"] = c.doUsePasswordManager
 	c.handlers["distribute_type"] = c.doDistributeType
 	c.handlers["_passmgr_debug"] = c.doPassmgrDebug
+	c.handlers["version"] = c.doVersion
 
 	commands := make([]string, len(c.handlers))
 	i := 0
@@ -58,6 +59,10 @@ func (c *Cli) setupCmdHandlers() {
 		i++
 	}
 	c.completer = newCompleter(c.store, commands)
+}
+
+func (c *Cli) doVersion(name string, argsLine string, args ...string) {
+	term.Successf("XC version %s\n", version())
 }
 
 func (c *Cli) doExit(name string, argsLine string, args ...string) {
