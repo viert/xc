@@ -386,13 +386,13 @@ List of commands:
     collapse                               shortcut for "mode collapse"
     debug                                  one shouldn't use this
     delay                                  sets a delay between hosts in serial mode
-	distribute                             copies a file to a number of hosts in parallel
+    distribute                             copies a file to a number of hosts in parallel
     distribute_type                        sets the backend of the "distribute" command
     exec/c_exec/s_exec/p_exec              executes a remote command on a number of hosts
     exit                                   exits the xc
     help                                   shows help on various topics
     hostlist                               resolves a host expression to a list of hosts
-    interpreter							   sets interpreter for each type of privileges raising
+    interpreter                            sets interpreter for each type of privileges raising
     local                                  starts a local command
     mode                                   switches between execution modes
     parallel                               shortcut for "mode parallel"
