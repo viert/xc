@@ -152,6 +152,8 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	cli.doMode("mode", "mode", cfg.Mode)
 
 	cli.setPrompt()
+	cli.runRC(cfg.RCfile)
+
 	return cli, nil
 }
 
@@ -486,4 +488,23 @@ func (c *Cli) setDistributeType(dtr string) {
 		return
 	}
 	remote.SetDistributeType(c.distributeType)
+}
+
+func (c *Cli) runRC(rcfile string) {
+	f, err := os.Open(rcfile)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			term.Errorf("Error loading rcfile: %s\n", err)
+		}
+		return
+	}
+	defer f.Close()
+
+	term.Successf("Running rcfile %s...", rcfile)
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		cmd := sc.Text()
+		fmt.Println(term.Green(cmd))
+		c.OneCmd(cmd)
+	}
 }

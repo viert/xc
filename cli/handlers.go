@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/viert/xc/config"
+
 	"github.com/viert/xc/passmgr"
 	"github.com/viert/xc/remote"
 	"github.com/viert/xc/term"
@@ -365,9 +367,10 @@ func (c *Cli) doOutput(name string, argsLine string, args ...string) {
 		return
 	}
 
-	err := c.setOutput(argsLine)
+	outputFilename := config.ExpandPath(argsLine)
+	err := c.setOutput(outputFilename)
 	if err == nil {
-		c.outputFileName = argsLine
+		c.outputFileName = outputFilename
 		term.Successf("Output is copied to %s\n", c.outputFileName)
 	} else {
 		term.Errorf("Error setting output file to %s: %s\n", argsLine, err)
