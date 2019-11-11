@@ -383,7 +383,7 @@ func generalHelp() {
 List of commands:
     alias                                  creates a local alias command
     cd                                     changes current working directory
-    collapse                               shortcut for "mode collapse"
+	collapse                               shortcut for "mode collapse"
     debug                                  one shouldn't use this
     delay                                  sets a delay between hosts in serial mode
     distribute                             copies a file to a number of hosts in parallel

@@ -416,6 +416,12 @@ func (c *Cli) dorunscript(mode execMode, argsLine string) {
 	remoteFilename = fmt.Sprintf("tmp.xc.%s_%s", now, filepath.Base(localFilename))
 	remoteFilename = filepath.Join(c.remoteTmpDir, remoteFilename)
 
+	if c.distributeType != remote.CTScp {
+		currentDistributeType := c.distributeType
+		remote.SetDistributeType(remote.CTScp)
+		defer remote.SetDistributeType(currentDistributeType)
+	}
+
 	dr := remote.Distribute(hosts, localFilename, remoteFilename, false)
 	copyError := dr.ErrorHosts
 	hosts = dr.SuccessHosts
@@ -500,7 +506,7 @@ func (c *Cli) runRC(rcfile string) {
 	}
 	defer f.Close()
 
-	term.Successf("Running rcfile %s...", rcfile)
+	term.Successf("Running rcfile %s...\n", rcfile)
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
 		cmd := sc.Text()
