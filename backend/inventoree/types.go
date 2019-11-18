@@ -13,6 +13,7 @@ type Inventoree struct {
 	cacheDir       string
 	url            string
 	authToken      string
+	insecure       bool
 	hosts          []*store.Host
 	groups         []*store.Group
 	workgroups     []*store.WorkGroup

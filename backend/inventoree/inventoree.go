@@ -1,6 +1,8 @@
 package inventoree
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -36,6 +38,18 @@ func New(cfg *config.XCConfig) (*Inventoree, error) {
 		return nil, fmt.Errorf("Inventoree backend URL is not configured")
 	}
 
+	// insecure configuration
+	insec, found := options["insecure"]
+	if !found {
+		insec = "false"
+	}
+
+	insecure := false
+	if insec == "true" || insec == "yes" || insec == "1" {
+		insecure = true
+		term.Warnf("WARNING: Inventory backend will be accessed in insecure mode\n")
+	}
+
 	// auth configuration
 	authToken, found := options["auth_token"]
 	if !found {
@@ -48,6 +62,7 @@ func New(cfg *config.XCConfig) (*Inventoree, error) {
 		cacheDir:       cfg.CacheDir,
 		url:            url,
 		authToken:      authToken,
+		insecure:       insecure,
 	}, nil
 }
 
@@ -99,6 +114,16 @@ func (i *Inventoree) Load() error {
 
 func (i *Inventoree) inventoreeGet(path string) ([]byte, error) {
 	client := &http.Client{}
+
+	if i.insecure {
+		rootCAs, _ := x509.SystemCertPool()
+		tlsconf := &tls.Config{
+			InsecureSkipVerify: true,
+			RootCAs:            rootCAs,
+		}
+		transport := &http.Transport{TLSClientConfig: tlsconf}
+		client.Transport = transport
+	}
 
 	url := fmt.Sprintf("%s%s", i.url, path)
 	req, err := http.NewRequest("GET", url, nil)
