@@ -34,6 +34,8 @@ func Distribute(hosts []string, localFilename string, remoteFilename string, rec
 	signal.Notify(sigs, syscall.SIGINT)
 	defer signal.Reset()
 
+	pool = NewPool()
+	defer pool.Close()
 	go func() {
 		for _, host := range hosts {
 			t = &Task{

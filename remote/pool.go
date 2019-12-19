@@ -16,18 +16,18 @@ type Pool struct {
 }
 
 // NewPool creates a new worker pool of a given size
-func NewPool(size int) *Pool {
+func NewPool() *Pool {
 
 	p := &Pool{
-		workers: make([]*Worker, size),
+		workers: make([]*Worker, poolSize),
 		queue:   make(chan *Task, dataQueueSize),
 		Data:    make(chan *Message, dataQueueSize),
 	}
 
-	for i := 0; i < size; i++ {
+	for i := 0; i < poolSize; i++ {
 		p.workers[i] = NewWorker(p.queue, p.Data)
 	}
-	log.Debugf("Remote execution pool created with %d workers", size)
+	log.Debugf("Remote execution pool created with %d workers", poolSize)
 	log.Debugf("Data Queue Size is %d", dataQueueSize)
 	return p
 }
