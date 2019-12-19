@@ -134,6 +134,7 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	remote.SetConnectTimeout(cli.connectTimeout)
 	remote.SetDebug(cli.debug)
 	remote.SetUsePasswordManager(cli.usePasswordMgr)
+	remote.SetNumThreads(cli.sshThreads)
 
 	// interpreter
 	cli.setInterpreter("none", cfg.Interpreter)

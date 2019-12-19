@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"syscall"
 
@@ -53,6 +54,7 @@ func (c *Cli) setupCmdHandlers() {
 	c.handlers["distribute_type"] = c.doDistributeType
 	c.handlers["_passmgr_debug"] = c.doPassmgrDebug
 	c.handlers["version"] = c.doVersion
+	c.handlers["goruntime"] = c.doGoruntime
 
 	commands := make([]string, len(c.handlers))
 	i := 0
@@ -477,4 +479,20 @@ func (c *Cli) doPRunScript(name string, argsLine string, args ...string) {
 
 func (c *Cli) doPassmgrDebug(name string, argsLine string, args ...string) {
 	passmgr.PrintDebug()
+}
+
+func (c *Cli) doGoruntime(name string, argsLine string, args ...string) {
+	var ms runtime.MemStats
+	numGr := runtime.NumGoroutine()
+	runtime.ReadMemStats(&ms)
+	term.Warnf("Heap Allocations:    %d\n", ms.HeapAlloc)
+	term.Warnf("Heap Objects:        %d\n", ms.HeapObjects)
+	term.Warnf("Heap In Use:         %d\n", ms.HeapInuse)
+	term.Warnf("Mallocs:             %d\n", ms.Mallocs)
+	term.Warnf("Frees:               %d\n", ms.Frees)
+	term.Warnf("Last GC TStamp:      %d\n", ms.LastGC/1_000_000_000)
+	term.Warnf("Next GC HeapSize:    %d\n", ms.NextGC)
+	term.Warnf("Num GC:              %d\n", ms.NumGC)
+	term.Warnf("Num Forced GC:       %d\n\n", ms.NumForcedGC)
+	term.Warnf("Goroutines:          %d\n", numGr)
 }

@@ -23,6 +23,7 @@ var (
 	currentDebug              bool
 	outputFile                *os.File
 	poolLock                  *sync.Mutex
+	poolSize                  int
 
 	noneInterpreter string
 	suInterpreter   string
@@ -31,7 +32,6 @@ var (
 
 // Initialize initializes new execution pool
 func Initialize(numThreads int, username string) {
-	pool = NewPool(numThreads)
 	poolLock = new(sync.Mutex)
 	SetUser(username)
 	SetPassword("")
@@ -109,13 +109,9 @@ func SetOutputFile(f *os.File) {
 	outputFile = f
 }
 
-// SetNumThreads recreates the execution pool with the given number of threads
+// SetNumThreads sets execution pool size
 func SetNumThreads(numThreads int) {
-	if len(pool.workers) == numThreads {
-		return
-	}
-	pool.Close()
-	pool = NewPool(numThreads)
+	poolSize = numThreads
 }
 
 func prepareTempFiles(cmd string) (string, string, error) {

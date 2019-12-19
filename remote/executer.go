@@ -111,6 +111,8 @@ func RunParallel(hosts []string, cmd string) *ExecResult {
 	signal.Notify(sigs, syscall.SIGINT)
 	defer signal.Reset()
 
+	pool = NewPool()
+	defer pool.Close()
 	go enqueue(local, remote, hosts)
 
 	for running > 0 {
@@ -182,6 +184,8 @@ func RunCollapse(hosts []string, cmd string) *ExecResult {
 	signal.Notify(sigs, syscall.SIGINT)
 	defer signal.Reset()
 
+	pool = NewPool()
+	defer pool.Close()
 	go enqueue(local, remote, hosts)
 
 	for running > 0 {
