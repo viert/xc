@@ -90,6 +90,8 @@ func (i *Inventoree) Datacenters() []*store.Datacenter {
 func (i *Inventoree) Reload() error {
 	err := i.loadRemote()
 	if err != nil {
+		term.Errorf("\n%s\n", err)
+		term.Warnf("Trying to load data from cache...\n")
 		// trying to use cache
 		return i.loadLocal()
 	}

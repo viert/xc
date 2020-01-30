@@ -112,6 +112,7 @@ func parseExpression(expr []rune) ([]*token, error) {
 			}
 
 			return nil, fmt.Errorf("Invalid symbol %s, expected -, *, %% or a hostname at position %d", string(sym), i)
+
 		case stateReadGroup:
 
 			if sym == '@' {
