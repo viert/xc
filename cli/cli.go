@@ -135,6 +135,7 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	remote.SetDebug(cli.debug)
 	remote.SetUsePasswordManager(cli.usePasswordMgr)
 	remote.SetNumThreads(cli.sshThreads)
+	remote.SetRemoteEnvironment(cfg.RemoteEnvironment)
 
 	// interpreter
 	cli.setInterpreter("none", cfg.Interpreter)
@@ -232,6 +233,9 @@ func (c *Cli) OneCmd(line string) {
 	var argsLine string
 
 	line = strings.Trim(line, " \n\t")
+	if strings.HasPrefix(line, "#") {
+		return
+	}
 
 	cmdRunes, rest := split([]rune(line))
 	cmd := string(cmdRunes)
