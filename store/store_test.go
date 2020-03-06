@@ -51,7 +51,16 @@ func (fb *FakeBackend) Load() error {
 		ParentID:    "g1",
 		Tags:        []string{"tag3", "tag4"},
 	}
-	fb.groups = append(fb.groups, group1, group2)
+
+	group3 := &Group{
+		ID:          "g3",
+		Name:        "group3",
+		WorkGroupID: "wg1",
+		ParentID:    "g1",
+		Tags:        []string{"special"},
+	}
+
+	fb.groups = append(fb.groups, group1, group2, group3)
 
 	dc1 := &Datacenter{
 		ID:       "dc1",
@@ -74,7 +83,17 @@ func (fb *FakeBackend) Load() error {
 		GroupID:      "g2",
 		DatacenterID: "dc2",
 	}
-	fb.hosts = append(fb.hosts, host)
+
+	host2 := &Host{
+		ID:           "h2",
+		FQDN:         "host2.example.com",
+		Aliases:      []string{"host2", "host2.i"},
+		Tags:         []string{},
+		GroupID:      "g3",
+		DatacenterID: "dc2",
+	}
+
+	fb.hosts = append(fb.hosts, host, host2)
 
 	return nil
 }
@@ -176,4 +195,52 @@ func TestStoreRelations(t *testing.T) {
 		}
 	}
 
+}
+
+func TestHostlist1(t *testing.T) {
+	fb := newFB()
+	fb.Load()
+
+	s, err := CreateStore(fb)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	hostlist, err := s.HostList([]rune("%group1#special"))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if len(hostlist) != 1 {
+		t.Errorf("hostlist %%group1#special is expected to contain exactly 1 element")
+		return
+	}
+
+	if hostlist[0] != "host2.example.com" {
+		t.Errorf("host is expected to be host2.example.gom, got %s instead", hostlist[0])
+	}
+}
+
+func TestHostlist2(t *testing.T) {
+	fb := newFB()
+	fb.Load()
+
+	s, err := CreateStore(fb)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	hostlist, err := s.HostList([]rune("%group1#tag1"))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if len(hostlist) != 2 {
+		t.Errorf("hostlist %%group1#tag1 is expected to contain exactly 2 elements")
+		return
+	}
 }

@@ -24,6 +24,7 @@ var (
 	outputFile                *os.File
 	poolLock                  *sync.Mutex
 	poolSize                  int
+	remoteEnvironment         map[string]string
 
 	noneInterpreter string
 	suInterpreter   string
@@ -114,6 +115,11 @@ func SetNumThreads(numThreads int) {
 	poolSize = numThreads
 }
 
+// SetRemoteEnvironment sets remote environ variables
+func SetRemoteEnvironment(environ map[string]string) {
+	remoteEnvironment = environ
+}
+
 func prepareTempFiles(cmd string) (string, string, error) {
 	f, err := ioutil.TempFile("", "xc.")
 	if err != nil {
@@ -123,6 +129,10 @@ func prepareTempFiles(cmd string) (string, string, error) {
 
 	remoteFilename := filepath.Join(currentRemoteTmpdir, filepath.Base(f.Name()))
 	io.WriteString(f, "#!/bin/bash\n\n")
+	for varName, value := range remoteEnvironment {
+		io.WriteString(f, fmt.Sprintf("%s=%s\n", varName, value))
+	}
+	io.WriteString(f, "\n")
 	io.WriteString(f, fmt.Sprintf("nohup bash -c \"sleep 1; rm -f $0\" >/dev/null 2>&1 </dev/null &\n")) // self-destroy
 	io.WriteString(f, cmd+"\n")                                                                          // run command
 	f.Chmod(0755)

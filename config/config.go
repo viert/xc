@@ -90,6 +90,7 @@ type XCConfig struct {
 	PasswordManagerPath    string
 	PasswordManagerOptions map[string]string
 	LocalEnvironment       map[string]string
+	RemoteEnvironment      map[string]string
 	Distribute             string
 }
 
@@ -163,6 +164,7 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 	cfg.Readline = defaultReadlineConfig
 	cfg.BackendCfg = &BackendConfig{Type: BTIni, Options: make(map[string]string)}
 	cfg.LocalEnvironment = make(map[string]string)
+	cfg.RemoteEnvironment = make(map[string]string)
 
 	hf, err := props.GetString("main.history_file")
 	if err != nil {
@@ -348,6 +350,14 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 		for _, key := range envkeys {
 			value, _ := props.GetString(fmt.Sprintf("environ.%s", key))
 			cfg.LocalEnvironment[key] = ExpandPath(value)
+		}
+	}
+
+	envkeys, err = props.Subkeys("remote_environ")
+	if err == nil {
+		for _, key := range envkeys {
+			value, _ := props.GetString(fmt.Sprintf("remote_environ.%s", key))
+			cfg.RemoteEnvironment[key] = value
 		}
 	}
 

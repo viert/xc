@@ -246,6 +246,12 @@ execLoop:
 				r.Codes[host] = ErrCopyFailed
 				continue
 			}
+		} else {
+			for varName, value := range remoteEnvironment {
+				remoteCmd += fmt.Sprintf("%s=%s ", varName, value)
+			}
+			remoteCmd += "$SHELL"
+			remoteCmd = "'" + remoteCmd + "'"
 		}
 
 		cmd = createSSHCmd(host, remoteCmd)
