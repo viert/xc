@@ -176,7 +176,7 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 						continue
 					}
 					for _, tag := range token.TagsFilter {
-						if !stringslice.Contains(invhost.Tags, tag) {
+						if !stringslice.Contains(invhost.AllTags, tag) {
 							continue
 						}
 					}
@@ -201,7 +201,7 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 					}
 
 					for _, tag := range token.TagsFilter {
-						if !stringslice.Contains(host.Tags, tag) {
+						if !stringslice.Contains(host.AllTags, tag) {
 							continue hostLoop1
 						}
 					}
@@ -250,7 +250,7 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 					}
 
 					for _, tag := range token.TagsFilter {
-						if !stringslice.Contains(host.Tags, tag) {
+						if !stringslice.Contains(host.AllTags, tag) {
 							continue hostLoop2
 						}
 					}
