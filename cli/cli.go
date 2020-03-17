@@ -135,6 +135,7 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	remote.SetDebug(cli.debug)
 	remote.SetUsePasswordManager(cli.usePasswordMgr)
 	remote.SetNumThreads(cli.sshThreads)
+	remote.SetSSHCommand(cfg.SSHCommand)
 	remote.SetRemoteEnvironment(cfg.RemoteEnvironment)
 
 	// interpreter

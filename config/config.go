@@ -27,6 +27,7 @@ distribute = tar
 [executer]
 ssh_threads = 50
 ssh_connect_timeout = 1
+ssh_command = /usr/bin/ssh
 progress_bar = true
 prepend_hostnames = true
 remote_tmpdir = /tmp
@@ -70,6 +71,7 @@ type XCConfig struct {
 	User                   string
 	SSHThreads             int
 	SSHConnectTimeout      int
+	SSHCommand             string
 	PingCount              int
 	RemoteTmpdir           string
 	Mode                   string
@@ -109,6 +111,7 @@ const (
 	defaultProgressbar       = true
 	defaultPrependHostnames  = true
 	defaultSSHConnectTimeout = 1
+	defaultSSHCommand        = "/usr/bin/ssh"
 	defaultLogFile           = ""
 	defaultExitConfirm       = true
 	defaultExecConfirm       = true
@@ -207,6 +210,12 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 		threads = defaultThreads
 	}
 	cfg.SSHThreads = threads
+
+	sshCommand, err := props.GetString("executer.ssh_command")
+	if err != nil {
+		sshCommand = defaultSSHCommand
+	}
+	cfg.SSHCommand = sshCommand
 
 	ctimeout, err := props.GetInt("executer.ssh_connect_timeout")
 	if err != nil {

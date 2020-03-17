@@ -60,7 +60,7 @@ func createSSHCmd(host string, argv string) *exec.Cmd {
 		params = append(params, "-c", argv)
 	}
 	log.Debugf("Created command ssh %v", params)
-	return exec.Command("ssh", params...)
+	return exec.Command(sshCommand, params...)
 }
 
 func getInterpreter() []string {

@@ -25,6 +25,7 @@ var (
 	poolLock                  *sync.Mutex
 	poolSize                  int
 	remoteEnvironment         map[string]string
+	sshCommand                string
 
 	noneInterpreter string
 	suInterpreter   string
@@ -37,6 +38,11 @@ func Initialize(numThreads int, username string) {
 	SetUser(username)
 	SetPassword("")
 	SetRaise(RTNone)
+}
+
+// SetSSHCommand sets ssh binary path to be used in createSSHCommand
+func SetSSHCommand(command string) {
+	sshCommand = command
 }
 
 // SetInterpreter sets none-raise interpreter
