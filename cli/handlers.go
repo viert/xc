@@ -273,12 +273,16 @@ func (c *Cli) doAlias(name string, argsLine string, args ...string) {
 
 func (c *Cli) doDelay(name string, argsLine string, args ...string) {
 	if len(args) < 1 {
-		term.Errorf("Usage: delay <seconds>\n")
+		term.Warnf("Current delay value: %d\n", c.delay)
 		return
 	}
-	sec, err := strconv.ParseInt(args[0], 10, 8)
+	sec, err := strconv.ParseInt(args[0], 10, 32)
 	if err != nil {
 		term.Errorf("Invalid delay format: %s\n", err)
+		return
+	}
+	if sec < 0 {
+		term.Errorf("Invalid delay format: delay can't be negative\n")
 		return
 	}
 	c.delay = int(sec)

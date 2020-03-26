@@ -224,7 +224,7 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 	cfg.SSHConnectTimeout = ctimeout
 
 	delay, err := props.GetInt("executer.delay")
-	if err != nil {
+	if err != nil || delay < 0 {
 		delay = defaultDelay
 	}
 	cfg.Delay = delay
