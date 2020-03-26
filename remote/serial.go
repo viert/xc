@@ -241,7 +241,7 @@ execLoop:
 			err = cmd.Run()
 			signal.Reset()
 			if err != nil {
-				term.Errorf("Error copying tempfile: %s\n", err)
+				term.Errorf("Error copying generated script file to remote host: %s\n", err)
 				r.ErrorHosts = append(r.ErrorHosts, host)
 				r.Codes[host] = ErrCopyFailed
 				continue

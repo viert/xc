@@ -154,13 +154,14 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 		return nil, err
 	}
 
-	hostlist := make([]string, 0)
+	hostlist := make([][]string, 0)
 
 	for _, token := range tokens {
+		singleTokenHosts := make([]string, 0)
 		switch token.Type {
 		case tTypeHostRegexp:
 			for _, host := range s.matchHost(token.RegexpFilter) {
-				maybeAddHost(&hostlist, host, token.Exclude)
+				maybeAddHost(&singleTokenHosts, host, token.Exclude)
 			}
 		case tTypeHost:
 
@@ -181,7 +182,7 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 						}
 					}
 				}
-				maybeAddHost(&hostlist, host, token.Exclude)
+				maybeAddHost(&singleTokenHosts, host, token.Exclude)
 			}
 
 		case tTypeGroup:
@@ -211,7 +212,7 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 							continue
 						}
 					}
-					maybeAddHost(&hostlist, host.FQDN, token.Exclude)
+					maybeAddHost(&singleTokenHosts, host.FQDN, token.Exclude)
 				}
 			}
 
@@ -261,14 +262,25 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 						}
 					}
 
-					maybeAddHost(&hostlist, host.FQDN, token.Exclude)
+					maybeAddHost(&singleTokenHosts, host.FQDN, token.Exclude)
 				}
 			}
 		}
+		if len(singleTokenHosts) > 0 {
+			hostlist = append(hostlist, singleTokenHosts)
+		}
 	}
-	// TODO: fix force sorting: sort inside the group/workgroup processing only
-	sort.Strings(hostlist)
-	return hostlist, nil
+
+	results := make([]string, 0)
+	for _, sthosts := range hostlist {
+		// sorting withing one expression token only
+		// the order of tokens themselves should be respected
+		sort.Strings(sthosts)
+		for _, host := range sthosts {
+			results = append(results, host)
+		}
+	}
+	return results, nil
 }
 
 // apply is called after the raw data is loaded and creates relations
