@@ -1,0 +1,37 @@
+stages:
+  - build
+  - push
+
+image: golang:1.13
+
+.build:
+  stage: build
+  script:
+    - kname=`uname -s`
+    - kver=`uname -r`
+    - gitcommit=`git rev-list --tags --max-count=1`
+    - appver=`git describe --tags $gitcommit`
+    - appbuild=`git rev-list ${appver}.. --count`
+    - echo $appver-$appbuild > __ver__.txt
+    - importroot="github.com/viert/xc/cli"
+    - GOOS=${os} GOARCH=${arch} go build -o xc-${os}-${arch} -ldflags="-X $importroot.appVersion=$appver -X $importroot.appBuild=$appbuild -X $importroot.kernelName=$kname -X $importroot.kernelVersion=$kver -X $importroot.kernelArch=$arch" cmd/xc/main.go
+  artifacts:
+    name: binary
+    paths:
+      - xc-${os}-${arch}
+
+build:linux:
+  extends: .build
+  variables:
+    os: linux
+    arch: amd64
+
+push:
+  stage: push
+  script:
+    - filename=$(curl --upload-file ./xc-linux-amd64 https://t.bk.ru/xc)
+    - echo $filename > release.txt
+  artifacts:
+    name: release
+    paths:
+      - release.txt
