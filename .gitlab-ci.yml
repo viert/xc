@@ -2,7 +2,7 @@ stages:
   - build
   - push
 
-image: golang:1.13
+image: registry-gitlab.corp.mail.ru/mntdev/xc
 
 .build:
   stage: build
@@ -30,7 +30,7 @@ push:
   stage: push
   script:
     - filename=$(curl --upload-file ./xc-linux-amd64 https://t.bk.ru/xc)
-    - echo $filename > release.txt
+    - icqnotify.py "a new release of XC is out:\n$filename"
   artifacts:
     name: release
     paths:
