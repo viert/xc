@@ -407,7 +407,11 @@ func (c *Cli) dorunscript(mode execMode, argsLine string) {
 	}
 
 	c.acquirePasswd()
-	localFilename = string(rest)
+
+	scriptName, scriptArgs := split(rest)
+	scriptArgsString := " " + string(scriptArgs)
+	localFilename = string(scriptName)
+
 	st, err = os.Stat(localFilename)
 	if err != nil {
 		term.Errorf("Error stat %s: %s\n", localFilename, err)
@@ -432,7 +436,7 @@ func (c *Cli) dorunscript(mode execMode, argsLine string) {
 	copyError := dr.ErrorHosts
 	hosts = dr.SuccessHosts
 
-	cmd := fmt.Sprintf("%s; rm %s", remoteFilename, remoteFilename)
+	cmd := fmt.Sprintf("%s%s; rm %s", remoteFilename, scriptArgsString, remoteFilename)
 	switch mode {
 	case emParallel:
 		r = remote.RunParallel(hosts, cmd)
