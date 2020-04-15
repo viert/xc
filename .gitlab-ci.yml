@@ -28,6 +28,8 @@ build:linux:
 
 push:
   stage: push
+  only:
+    - master
   script:
     - filename=$(curl --upload-file ./xc-linux-amd64 https://t.bk.ru/xc)
     - icqnotify.py "a new release of XC is out:\n$filename"
