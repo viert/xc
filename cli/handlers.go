@@ -55,6 +55,7 @@ func (c *Cli) setupCmdHandlers() {
 	c.handlers["_passmgr_debug"] = c.doPassmgrDebug
 	c.handlers["version"] = c.doVersion
 	c.handlers["goruntime"] = c.doGoruntime
+	c.handlers["natural_sort"] = c.doNaturalSort
 
 	commands := make([]string, len(c.handlers))
 	i := 0
@@ -291,6 +292,12 @@ func (c *Cli) doDelay(name string, argsLine string, args ...string) {
 func (c *Cli) doDebug(name string, argsLine string, args ...string) {
 	if doOnOff("debug", &c.debug, args) {
 		remote.SetDebug(c.debug)
+	}
+}
+
+func (c *Cli) doNaturalSort(name string, argsLine string, args ...string) {
+	if doOnOff("natural_sort", &c.naturalSort, args) {
+		c.store.SetNaturalSort(c.naturalSort)
 	}
 }
 

@@ -47,6 +47,7 @@ type Cli struct {
 	progressBar      bool
 	debug            bool
 	usePasswordMgr   bool
+	naturalSort      bool
 
 	interpreter     string
 	sudoInterpreter string
@@ -113,6 +114,7 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	cli.debug = cfg.Debug
 	cli.connectTimeout = cfg.SSHConnectTimeout
 	cli.remoteTmpDir = cfg.RemoteTmpdir
+	cli.naturalSort = true
 
 	// output
 	cli.outputFileName = ""
@@ -466,9 +468,12 @@ func doOnOff(propName string, propRef *bool, args []string) bool {
 	case "off":
 		*propRef = false
 	default:
-		term.Errorf("Invalid %s vaue. Please use either \"on\" or \"off\"\n", propName)
+		term.Errorf("Invalid %s value. Please use either \"on\" or \"off\"\n", propName)
 		return false
 	}
+
+	term.Warnf("%s set to %s\n", propName, args[0])
+
 	return prev != *propRef
 }
 

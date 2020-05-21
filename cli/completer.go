@@ -25,6 +25,7 @@ func newCompleter(store *store.Store, commands []string) *completer {
 	x.handlers["progressbar"] = onOffCompleter()
 	x.handlers["prepend_hostnames"] = onOffCompleter()
 	x.handlers["use_password_manager"] = onOffCompleter()
+	x.handlers["natural_sort"] = onOffCompleter()
 	x.handlers["raise"] = staticCompleter([]string{"none", "su", "sudo"})
 	x.handlers["interpreter"] = staticCompleter([]string{"none", "su", "sudo"})
 	x.handlers["exec"] = x.completeExec

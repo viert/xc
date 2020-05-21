@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/facette/natsort"
 	"github.com/viert/sekwence"
 	"github.com/viert/xc/stringslice"
 )
@@ -17,6 +18,8 @@ type Store struct {
 	workgroups  *wgstore
 	tags        []string
 	backend     Backend
+
+	naturalSort bool
 }
 
 func (s *Store) reinitStore() {
@@ -146,6 +149,12 @@ func (s *Store) groupAllHosts(g *Group) []*Host {
 	return hosts
 }
 
+// SetNaturalSort enables/disables using of natural sorting
+// within one expression token (i.e. group)
+func (s *Store) SetNaturalSort(value bool) {
+	s.naturalSort = value
+}
+
 // HostList returns a list of host FQDNs according to a given
 // expression
 func (s *Store) HostList(expr []rune) ([]string, error) {
@@ -273,9 +282,14 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 
 	results := make([]string, 0)
 	for _, sthosts := range hostlist {
-		// sorting withing one expression token only
+		// sorting within one expression token only
 		// the order of tokens themselves should be respected
-		sort.Strings(sthosts)
+		if s.naturalSort {
+			natsort.Sort(sthosts)
+		} else {
+			sort.Strings(sthosts)
+		}
+
 		for _, host := range sthosts {
 			results = append(results, host)
 		}
@@ -385,6 +399,7 @@ func (s *Store) apply() {
 func CreateStore(backend Backend) (*Store, error) {
 	s := new(Store)
 	s.backend = backend
+	s.naturalSort = true
 	err := s.BackendLoad()
 	return s, err
 }

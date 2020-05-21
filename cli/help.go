@@ -294,6 +294,15 @@ Switching them off is useful for copy-pasting the results.`,
 			usage: "[<on/off>]",
 			help:  `Sets the progressbar on or off. If no value is given, prints the current value.`,
 		},
+		"natural_sort": &helpItem{
+			usage: "[<on/off>]",
+			help: `Sets natural sorting of host lists on or off. If no value is given, prints the current value.
+
+Important note: sorting works only within one expression token, that is, if you
+explicitly type the hostlist like "host5,host3,host1", the order is preserved,
+xc considers you know what you are doing. Sorting is applied only within a group,
+a workgroup or a pattern like "host{1..50}"`,
+		},
 
 		"raise": &helpItem{
 			usage: "<none/sudo/su>",
@@ -383,7 +392,7 @@ func generalHelp() {
 List of commands:
     alias                                  creates a local alias command
     cd                                     changes current working directory
-	collapse                               shortcut for "mode collapse"
+    collapse                               shortcut for "mode collapse"
     debug                                  one shouldn't use this
     delay                                  sets a delay between hosts in serial mode
     distribute                             copies a file to a number of hosts in parallel
@@ -395,6 +404,7 @@ List of commands:
     interpreter                            sets interpreter for each type of privileges raising
     local                                  starts a local command
     mode                                   switches between execution modes
+    natural_sort                           sets natural sorting on/off
     parallel                               shortcut for "mode parallel"
     passwd                                 sets passwd for privilege raise
     progressbar                            controls progressbar
