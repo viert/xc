@@ -50,6 +50,18 @@ func New(cfg *config.XCConfig) (*Inventoree, error) {
 		term.Warnf("WARNING: Inventory backend will be accessed in insecure mode\n")
 	}
 
+	// host key field
+	hostKey, found := options["host_key_field"]
+	if !found {
+		hostKey = "fqdn"
+	}
+
+	if hostKey != "fqdn" && hostKey != "ssh_hostname" {
+		term.Errorf("ERROR: invalid host_key_field \"%s\", only \"fqdn\" and \"ssh_hostname\" are allowed\n", hostKey)
+		term.Warnf("Falling back to fqdn as host key field\n")
+		hostKey = "fqdn"
+	}
+
 	// auth configuration
 	authToken, found := options["auth_token"]
 	if !found {
@@ -61,6 +73,7 @@ func New(cfg *config.XCConfig) (*Inventoree, error) {
 		cacheTTL:       cfg.CacheTTL,
 		cacheDir:       cfg.CacheDir,
 		url:            url,
+		hostKeyField:   hostKey,
 		authToken:      authToken,
 		insecure:       insecure,
 	}, nil
@@ -274,8 +287,12 @@ func (i *Inventoree) loadRemote() error {
 
 	term.Warnf("Loading hosts...")
 	count = 0
+
+	fieldSet := "_id,fqdn,ssh_hostname,local_tags,group_id,datacenter_id,aliases,description"
+	moveToFQDN := i.hostKeyField != "fqdn"
+
 	for _, wg := range lc.WorkGroups {
-		path := fmt.Sprintf("/api/v2/hosts/?work_group_id=%s&_fields=_id,fqdn,local_tags,group_id,datacenter_id,aliases,description&_nopaging=true", wg.ID)
+		path := fmt.Sprintf("/api/v2/hosts/?work_group_id=%s&_fields=%s&_nopaging=true", wg.ID, fieldSet)
 		data, err = i.inventoreeGet(path)
 		if err != nil {
 			term.Errorf("\nError loading hosts of work group %s: %s", wg.Name, err)
@@ -288,6 +305,11 @@ func (i *Inventoree) loadRemote() error {
 			continue
 		}
 		for _, h := range hdata.Data {
+			if moveToFQDN && h.SSHHostname != "" {
+				// copying ssh_hostname to FQDN
+				// to keep things simple
+				h.FQDN = h.SSHHostname
+			}
 			lc.Hosts = append(lc.Hosts, h)
 			count++
 		}

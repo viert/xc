@@ -52,7 +52,6 @@ type BackendType int
 // Backend types
 const (
 	BTIni BackendType = iota
-	BTJSON
 	BTConductor
 	BTInventoree
 )
@@ -72,7 +71,6 @@ type XCConfig struct {
 	SSHThreads             int
 	SSHConnectTimeout      int
 	SSHCommand             string
-	PingCount              int
 	RemoteTmpdir           string
 	Mode                   string
 	RaiseType              string
@@ -103,7 +101,6 @@ const (
 	defaultCacheTTL          = 24
 	defaultThreads           = 50
 	defaultRemoteTmpDir      = "/tmp"
-	defaultPingCount         = 5
 	defaultDelay             = 0
 	defaultMode              = "parallel"
 	defaultRaiseType         = "none"
@@ -235,12 +232,6 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 	}
 	cfg.RemoteTmpdir = tmpdir
 
-	pc, err := props.GetInt("executer.ping_count")
-	if err != nil {
-		pc = defaultPingCount
-	}
-	cfg.PingCount = pc
-
 	sdi, err := props.GetString("executer.interpreter_sudo")
 	if err != nil {
 		sdi = defaultSudoInterpreter
@@ -320,8 +311,6 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 			switch value {
 			case "ini":
 				cfg.BackendCfg.Type = BTIni
-			case "json":
-				cfg.BackendCfg.Type = BTJSON
 			case "conductor":
 				cfg.BackendCfg.Type = BTConductor
 			case "inventoree":

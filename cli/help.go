@@ -97,61 +97,103 @@ user =
 mode = parallel
 history_file = ~/.xc_history
 cache_dir = ~/.xc_cache
+cache_ttl = 336 # 24 * 7 * 2
 rc_file = ~/.xcrc
 raise = none
 exit_confirm = true
-backend_type = conductor
-local_file = ~/.xc_hosts
+exec_confirm = false
+log_file = ~/xc.log
+distribute = scp
+debug = false
 
 [executer]
 ssh_threads = 50
 ssh_connect_timeout = 1
-ping_count = 5
+ssh_command = /usr/bin/ssh
 progress_bar = true
+prepend_hostnames = true
 remote_tmpdir = /tmp
 delay = 0
 
-[inventoree]
-url = http://c.inventoree.ru
-work_groups = 
+interpreter = bash
+interpreter_sudo = sudo bash
+interpreter_su = su -
 
-Configuration is split to 3 sections: main, executer and inventoree.
+[backend]
+type = inventoree
+url = http://inventory-stage.infra.cloud.devmail.ru
+auth_token = <token>
+work_groups = WorkGroup1,WorkGroup2
+host_key_field = ssh_hostname
 
-main.user is the user which will be set on xc startup. If empty, the current system user is used.
+Configuration is split to 3 sections: main, executer and backend.
 
-main.mode is the execution mode which will be set on xc startup. See "help mode" for more info on execution modes.
+[main]
+    user is the user which will be set on xc startup. If empty, the current system user is used.
 
-main.history_file sets the history file
+    mode is the execution mode which will be set on xc startup. See "help mode" for more info on execution modes.
 
-main.cache_dir sets the cache dir for data derived from inventoree
+    history_file sets the history file
 
-main.rc_file is the rcfile which will be executed on xc startup. See "help rcfiles" for more info.
+    cache_dir sets the cache dir for data derived from inventoree
 
-main.raise is the raise mode which will be set on xc startup
+    cache_ttl sets cache ttl (in hours)
 
-main.exit_confirm is boolean setting for disable or enable confirmation on exit
+    rc_file is the rcfile which will be executed on xc startup. See "help rcfiles" for more info.
 
-main.backend_type is type of backend, conductor or localjson or localini now
+    raise is the raise mode which will be set on xc startup
 
-main.local_file is path to json or ini local file, used when backend_type is localjson or localini
+    exit_confirm is boolean setting for disable or enable confirmation on exit
 
-executer.ssh_threads limits the number of simultaneously running ssh commands.
+    distribute sets initial distribute type to either tar or scp. See "help distribute_type" to learn more.
 
-executer.ssh_connect_timeout sets the default ssh connect timeout. You can change it at any moment using connect_timeout command.
+    debug sets initial debug logging on/off.
 
-executer.ping_count is not implemented yet and does nothing
+[executer]
+	ssh_threads limits the number of simultaneously running ssh commands.
 
-executer.progress_bar sets progressbar on or off on xc startup
+    ssh_connect_timeout sets the default ssh connect timeout. You can change it at any moment using connect_timeout command.
 
-executer.remote_tmpdir is a temporary directory used on remote servers for various xc needs
+    progress_bar sets progressbar on or off on xc startup
 
-executer.delay sets a delay in seconds between hosts when executing in serial mode. See "help delay" for more info
+    remote_tmpdir is a temporary directory used on remote servers for various xc needs
 
-inventoree.url sets the url of the inventoree service
+    delay sets a delay in seconds between hosts when executing in serial mode. See "help delay" for more info
 
-inventoree.work_groups is a comma-separated list of work_groups which will be downloaded from inventoree. 
-	If empty all work groups (i.e. all groups and all hosts as well) are downloaded without filtering which
-    may cause startup delays`,
+    interpreter_* sets commands executed remotely to boot the necessary interpreter according to current "raise" mode
+
+The [backend] section sets data storage backend. Three backends are currently supported: inventoree, conductor and ini. The backend type is set by a mandatory option "type".
+
+  1. "ini" backend stores hosts and groups in a local ini-file.
+    There's only one option "filename" to tell xc where to find the ini-file.
+    Example of ini-file:
+
+[workgroups]
+workgroup1
+
+[groups]
+group1 work_group=workgroup1
+group2 work_grlup=workgroup2 parent=group1
+
+[hosts]
+host1.example.com group=group1 datacenter=dc1.1
+host2.example.com group=group2 datacenter=dc1.1
+
+[datacenters]
+dc1
+dc1.1 parent=dc1
+
+  2. "conductor" loads hosts and groups via inventoree v1 API which is deprecated
+
+  3. "inventoree" is the most modern way to store your data. Options are following:
+	url - a base url to inventoree instance (inventoree >= 7.0 is required)
+	auth_token - your personal auth token
+	work_groups - a comma-separated list of workgroups to load. If the list is empty, xc will load all the workgroups which could increase loading time dramatically.
+	host_key_field - may be set to either "fqdn" or "ssh_hostname", this tells xc what a host is identified by.
+                     ssh_hostname in its turn is a computed field in inventoree >= 7.2-45 which may be configured
+                     in custom data field "ssh_hostname" like aliases are configured (using $0, $1, $2 etc as domain parts)
+
+`,
 		},
 
 		"rcfiles": &helpItem{

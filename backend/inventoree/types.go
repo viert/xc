@@ -14,6 +14,7 @@ type Inventoree struct {
 	url            string
 	authToken      string
 	insecure       bool
+	hostKeyField   string
 	hosts          []*store.Host
 	groups         []*store.Group
 	workgroups     []*store.WorkGroup
@@ -36,6 +37,7 @@ type workgroup struct {
 type host struct {
 	ID           string   `json:"_id"`
 	FQDN         string   `json:"fqdn"`
+	SSHHostname  string   `json:"ssh_hostname"`
 	Description  string   `json:"description"`
 	Tags         []string `json:"local_tags"`
 	Aliases      []string `json:"aliases"`
