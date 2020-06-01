@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/viert/xc/stringslice"
 )
 
 type tokenType int
@@ -47,19 +45,6 @@ func newToken() *token {
 	ct.TagsFilter = make([]string, 0)
 	ct.RegexpFilter = nil
 	return ct
-}
-
-func maybeAddHost(hostlist *[]string, host string, exclude bool) {
-	newHl := *hostlist
-	if exclude {
-		hIdx := stringslice.Index(newHl, host)
-		if hIdx >= 0 {
-			newHl = append(newHl[:hIdx], newHl[hIdx+1:]...)
-		}
-	} else {
-		newHl = append(newHl, host)
-	}
-	*hostlist = newHl
 }
 
 func parseExpression(expr []rune) ([]*token, error) {

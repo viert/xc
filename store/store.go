@@ -22,6 +22,12 @@ type Store struct {
 	naturalSort bool
 }
 
+// expandedToken represents one token expanded into a hostlist
+type expandedToken struct {
+	exclude bool
+	hosts   []string
+}
+
 func (s *Store) reinitStore() {
 	s.datacenters = new(dcstore)
 	s.datacenters._id = make(map[string]*Datacenter)
@@ -163,14 +169,19 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 		return nil, err
 	}
 
-	hostlist := make([][]string, 0)
+	expanded := make([]expandedToken, 0)
 
 	for _, token := range tokens {
-		singleTokenHosts := make([]string, 0)
+
+		etoken := expandedToken{
+			exclude: token.Exclude,
+			hosts:   make([]string, 0),
+		}
+
 		switch token.Type {
 		case tTypeHostRegexp:
 			for _, host := range s.matchHost(token.RegexpFilter) {
-				maybeAddHost(&singleTokenHosts, host, token.Exclude)
+				etoken.hosts = append(etoken.hosts, host)
 			}
 		case tTypeHost:
 
@@ -191,7 +202,7 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 						}
 					}
 				}
-				maybeAddHost(&singleTokenHosts, host, token.Exclude)
+				etoken.hosts = append(etoken.hosts, host)
 			}
 
 		case tTypeGroup:
@@ -221,7 +232,7 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 							continue
 						}
 					}
-					maybeAddHost(&singleTokenHosts, host.FQDN, token.Exclude)
+					etoken.hosts = append(etoken.hosts, host.FQDN)
 				}
 			}
 
@@ -271,27 +282,31 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 						}
 					}
 
-					maybeAddHost(&singleTokenHosts, host.FQDN, token.Exclude)
+					etoken.hosts = append(etoken.hosts, host.FQDN)
 				}
 			}
 		}
-		if len(singleTokenHosts) > 0 {
-			hostlist = append(hostlist, singleTokenHosts)
+		if len(etoken.hosts) > 0 {
+			expanded = append(expanded, etoken)
 		}
 	}
 
 	results := make([]string, 0)
-	for _, sthosts := range hostlist {
+	for _, etoken := range expanded {
 		// sorting within one expression token only
 		// the order of tokens themselves should be respected
 		if s.naturalSort {
-			natsort.Sort(sthosts)
+			natsort.Sort(etoken.hosts)
 		} else {
-			sort.Strings(sthosts)
+			sort.Strings(etoken.hosts)
 		}
 
-		for _, host := range sthosts {
-			results = append(results, host)
+		if etoken.exclude {
+			for _, exhost := range etoken.hosts {
+				stringslice.Remove(&results, exhost)
+			}
+		} else {
+			results = append(results, etoken.hosts...)
 		}
 	}
 	return results, nil

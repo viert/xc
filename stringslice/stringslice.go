@@ -14,3 +14,11 @@ func Index(arr []string, item string) int {
 func Contains(arr []string, item string) bool {
 	return Index(arr, item) >= 0
 }
+
+// Remove removes an item from array if it's in there
+func Remove(arr *[]string, item string) {
+	idx := Index(*arr, item)
+	if idx >= 0 {
+		*arr = append((*arr)[0:idx], (*arr)[idx+1:len(*arr)]...)
+	}
+}

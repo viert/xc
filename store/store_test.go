@@ -60,7 +60,15 @@ func (fb *FakeBackend) Load() error {
 		Tags:        []string{"special"},
 	}
 
-	fb.groups = append(fb.groups, group1, group2, group3)
+	group4 := &Group{
+		ID:          "g4",
+		Name:        "group4",
+		WorkGroupID: "wg1",
+		ParentID:    "",
+		Tags:        []string{},
+	}
+
+	fb.groups = append(fb.groups, group1, group2, group3, group4)
 
 	dc1 := &Datacenter{
 		ID:       "dc1",
@@ -93,7 +101,25 @@ func (fb *FakeBackend) Load() error {
 		DatacenterID: "dc2",
 	}
 
-	fb.hosts = append(fb.hosts, host, host2)
+	host3 := &Host{
+		ID:           "h3",
+		FQDN:         "host3.example.com",
+		Aliases:      []string{"host3", "host3.i"},
+		Tags:         []string{},
+		GroupID:      "g4",
+		DatacenterID: "dc2",
+	}
+
+	host4 := &Host{
+		ID:           "h4",
+		FQDN:         "host4.example.com",
+		Aliases:      []string{"host4", "host4.i"},
+		Tags:         []string{},
+		GroupID:      "g4",
+		DatacenterID: "dc2",
+	}
+
+	fb.hosts = append(fb.hosts, host, host2, host3, host4)
 
 	return nil
 }
@@ -214,7 +240,7 @@ func TestHostlist1(t *testing.T) {
 	}
 
 	if len(hostlist) != 1 {
-		t.Errorf("hostlist %%group1#special is expected to contain exactly 1 element")
+		t.Errorf("hostlist %%group1#special is expected to contain exactly 1 element, %v", hostlist)
 		return
 	}
 
@@ -243,4 +269,34 @@ func TestHostlist2(t *testing.T) {
 		t.Errorf("hostlist %%group1#tag1 is expected to contain exactly 2 elements")
 		return
 	}
+}
+
+func TestExclude(t *testing.T) {
+	fb := newFB()
+	fb.Load()
+
+	s, err := CreateStore(fb)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	hostlist, err := s.HostList([]rune("%group4"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(hostlist) != 2 {
+		t.Errorf("hostlist is expected to consist of exactly two elements, %v", hostlist)
+	}
+
+	hostlist, err = s.HostList([]rune("%group4,-host3.example.com"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(hostlist) != 1 {
+		t.Errorf("hostlist is expected to consist of exactly one element, %v", hostlist)
+	}
+
 }
