@@ -15,10 +15,10 @@ def send(message):
     if not message:
         raise ValueError("message is empty")
 
-    print("using api base %s" % ICQ_API_URL)
+    sys.stderr.write("using api base %s\n" % ICQ_API_URL)
     bot = Bot(token=ICQ_TOKEN, api_url_base=ICQ_API_URL)
     r = bot.send_text(chat_id=ICQ_CHAT_ID, text=message)
-    print("response was:", r)
+    sys.stderr.write("response was: %s\n" % r)
 
 
 if __name__ == '__main__':
