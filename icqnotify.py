@@ -5,7 +5,7 @@ from bot.bot import Bot
 
 ICQ_TOKEN = os.environ.get("ICQ_TOKEN")
 ICQ_CHAT_ID = os.environ.get("ICQ_CHAT_ID")
-
+ICQ_API_URL = os.environ.get("ICQ_API_URL", "api.icq.net")
 
 def send(message):
     if not ICQ_TOKEN:
