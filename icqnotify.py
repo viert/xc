@@ -23,4 +23,5 @@ def send(message):
 
 if __name__ == '__main__':
     message = ' '.join(sys.argv[1:]).strip().replace("\\n", "\n")
+    print("about to send message '%s'" % message)
     send(message)
