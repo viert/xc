@@ -202,6 +202,7 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 						}
 					}
 				}
+
 				etoken.hosts = append(etoken.hosts, host)
 			}
 
@@ -216,8 +217,18 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 							continue
 						}
 						if host.Datacenter.Name != token.DatacenterFilter {
-							// TODO tree
-							continue
+							hostDC := host.Datacenter.Parent
+							parentMatch := false
+							for hostDC != nil {
+								if hostDC.Name == token.DatacenterFilter {
+									parentMatch = true
+									break
+								}
+								hostDC = hostDC.Parent
+							}
+							if !parentMatch {
+								continue
+							}
 						}
 					}
 
@@ -265,8 +276,18 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 							continue
 						}
 						if host.Datacenter.Name != token.DatacenterFilter {
-							// TODO tree
-							continue
+							hostDC := host.Datacenter.Parent
+							parentMatch := false
+							for hostDC != nil {
+								if hostDC.Name == token.DatacenterFilter {
+									parentMatch = true
+									break
+								}
+								hostDC = hostDC.Parent
+							}
+							if !parentMatch {
+								continue
+							}
 						}
 					}
 
