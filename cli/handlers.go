@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 	"syscall"
 
@@ -56,6 +57,7 @@ func (c *Cli) setupCmdHandlers() {
 	c.handlers["version"] = c.doVersion
 	c.handlers["goruntime"] = c.doGoruntime
 	c.handlers["natural_sort"] = c.doNaturalSort
+	c.handlers["_mem"] = c.doMemoryDump
 
 	commands := make([]string, len(c.handlers))
 	i := 0
@@ -72,6 +74,16 @@ func (c *Cli) doVersion(name string, argsLine string, args ...string) {
 
 func (c *Cli) doExit(name string, argsLine string, args ...string) {
 	c.stopped = true
+}
+
+func (c *Cli) doMemoryDump(name string, argsLine string, args ...string) {
+	f, err := os.Create("/tmp/xcheap.dump")
+	if err != nil {
+		term.Errorf("Can't dump: %s\n", err)
+		return
+	}
+	defer f.Close()
+	debug.WriteHeapDump(f.Fd())
 }
 
 func (c *Cli) doMode(name string, argsLine string, args ...string) {

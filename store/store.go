@@ -1,6 +1,8 @@
 package store
 
 import (
+	"bufio"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -179,6 +181,22 @@ func (s *Store) HostList(expr []rune) ([]string, error) {
 		}
 
 		switch token.Type {
+		case tTypeHostListFile:
+			filename := token.Value
+			f, err := os.Open(filename)
+			if err != nil {
+				return nil, err
+			}
+			sc := bufio.NewScanner(f)
+			for sc.Scan() {
+				hostname := strings.Trim(sc.Text(), " \t\r\n")
+				if hostname == "" || strings.Contains(hostname, " ") || strings.HasPrefix(hostname, "#") {
+					continue
+				}
+				etoken.hosts = append(etoken.hosts, hostname)
+			}
+			f.Close()
+
 		case tTypeHostRegexp:
 			for _, host := range s.matchHost(token.RegexpFilter) {
 				etoken.hosts = append(etoken.hosts, host)

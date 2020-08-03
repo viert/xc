@@ -252,7 +252,8 @@ with symlinks. It's more stable though.`,
 Every expression is a comma-separated list of tokens, where token may be
     - a single host,
     - a single group,
-    - a single workgroup,
+	- a single workgroup,
+	- a filename containing a list of hosts
 and every item may optionally be limited to a particular datacenter, a given tag, 
 or even be completely excluded from the list.
 
@@ -263,8 +264,9 @@ Some self-explanatory examples:
     %group1,-host2                      - all hosts from group1, excluding(!) host2
     %group2@dc1                         - all hosts from group2, located in datacenter dc1
     *myworkgroup@dc2,-%group3,host5     - all hosts from wg "myworkgroup" excluding hosts from group3, plus host5
-    %group5#tag1                        - all hosts from group5 tagged with tag1
-    
+	%group5#tag1                        - all hosts from group5 tagged with tag1
+	&hosts.txt                          - hosts from file hosts.txt
+	
 You may combine any number of tokens keeping in mind that they are resolved left to right, so exclusions
 almost always should be on the righthand side. For example, "-host1,host1" will end up with host1 in list
 despite being excluded previously.`,

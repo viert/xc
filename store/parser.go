@@ -14,6 +14,7 @@ const (
 	tTypeGroup
 	tTypeWorkGroup
 	tTypeHostRegexp
+	tTypeHostListFile
 )
 
 const (
@@ -25,6 +26,7 @@ const (
 	stateReadTag
 	stateReadHostBracePattern
 	stateReadRegexp
+	stateReadHostListFile
 )
 
 type token struct {
@@ -80,6 +82,12 @@ func parseExpression(expr []rune) ([]*token, error) {
 				ct.Type = tTypeWorkGroup
 				state = stateReadTag
 				tag = ""
+				continue
+			}
+
+			if sym == '&' {
+				ct.Type = tTypeHostListFile
+				state = stateReadHostListFile
 				continue
 			}
 
@@ -214,6 +222,19 @@ func parseExpression(expr []rune) ([]*token, error) {
 			}
 
 			ct.Value += string(sym)
+
+		case stateReadHostListFile:
+			if sym == ',' || last {
+				if last && sym != ',' {
+					ct.Value += string(sym)
+				}
+				res = append(res, ct)
+				ct = newToken()
+				state = stateWait
+				continue
+			}
+			ct.Value += string(sym)
+
 		case stateReadHostBracePattern:
 			if sym == '{' {
 				return nil, fmt.Errorf("nested patterns are not allowed (at %d)", i)

@@ -176,6 +176,11 @@ func (x *completer) completeExec(line []rune) ([][]rune, int) {
 		return x.completeTag(line[1:])
 	}
 
+	if len(line) > 0 && line[0] == '&' {
+		comp, ll := completeFiles(line[1:])
+		return comp, ll + 1
+	}
+
 	return x.completeHost(line)
 }
 

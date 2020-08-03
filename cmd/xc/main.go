@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -9,12 +10,17 @@ import (
 	"github.com/viert/xc/backend/inventoree"
 	"github.com/viert/xc/backend/localini"
 
+	_ "net/http/pprof"
+
 	"github.com/viert/xc/cli"
 	"github.com/viert/xc/config"
 	"github.com/viert/xc/term"
 )
 
 func main() {
+
+	go http.ListenAndServe(":5001", nil)
+
 	var tool *cli.Cli
 	var err error
 
