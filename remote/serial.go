@@ -247,6 +247,7 @@ execLoop:
 				continue
 			}
 		} else {
+			remoteCmd = ""
 			for varName, value := range remoteEnvironment {
 				remoteCmd += fmt.Sprintf("%s=%s ", varName, value)
 			}
