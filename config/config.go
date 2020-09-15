@@ -37,6 +37,14 @@ interpreter = bash
 interpreter_sudo = sudo bash
 interpreter_su = su -
 
+[ssh]
+PasswordAuthentication = no
+PubkeyAuthentication = yes
+StrictHostKeyChecking = no
+TCPKeepAlive = yes
+ServerAliveCountMax = 12
+ServerAliveInterval = 5
+
 [backend]
 type = conductor
 url = http://c.inventoree.ru
@@ -71,6 +79,7 @@ type XCConfig struct {
 	SSHThreads             int
 	SSHConnectTimeout      int
 	SSHCommand             string
+	SSHOptions             map[string]string
 	RemoteTmpdir           string
 	Mode                   string
 	RaiseType              string
@@ -165,6 +174,7 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 	cfg.BackendCfg = &BackendConfig{Type: BTIni, Options: make(map[string]string)}
 	cfg.LocalEnvironment = make(map[string]string)
 	cfg.RemoteEnvironment = make(map[string]string)
+	cfg.SSHOptions = make(map[string]string)
 
 	hf, err := props.GetString("main.history_file")
 	if err != nil {
@@ -297,6 +307,14 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 		phn = defaultPrependHostnames
 	}
 	cfg.PrependHostnames = phn
+
+	sshOptsKeys, err := props.Subkeys("ssh")
+	if err == nil {
+		for _, key := range sshOptsKeys {
+			nsKey := fmt.Sprintf("ssh.%s", key)
+			cfg.SSHOptions[key], _ = props.GetString(nsKey)
+		}
+	}
 
 	bkeys, err := props.Subkeys("backend")
 	if err != nil {

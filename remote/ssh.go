@@ -15,6 +15,13 @@ var (
 	}
 )
 
+// ApplyConfiguredOptions merges default options and configured ones
+func ApplyConfiguredOptions(cfgOptions map[string]string) {
+	for k, v := range cfgOptions {
+		sshOptions[k] = v
+	}
+}
+
 func sshOpts() (params []string) {
 	params = make([]string, 0)
 	for opt, value := range sshOptions {

@@ -139,6 +139,7 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 	remote.SetNumThreads(cli.sshThreads)
 	remote.SetSSHCommand(cfg.SSHCommand)
 	remote.SetRemoteEnvironment(cfg.RemoteEnvironment)
+	remote.ApplyConfiguredOptions(cfg.SSHOptions)
 
 	// interpreter
 	cli.setInterpreter("none", cfg.Interpreter)
