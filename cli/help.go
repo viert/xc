@@ -66,7 +66,7 @@ Xc has shortcuts for switching modes: just type "parallel", "serial" or "collaps
 switch the mode correspondingly.`
 
 	helpStrings = map[string]*helpItem{
-		"alias": &helpItem{
+		"alias": {
 			usage: "<aliasname> <cmd> [<args>]",
 			help: `Creates a local alias. This is handy for longer commands which are often in use.
         
@@ -80,12 +80,12 @@ Every alias created disappears after xc exits. To make an alias persistent put i
 See "help rcfiles" for further info.`,
 		},
 
-		"cd": &helpItem{
+		"cd": {
 			usage: "<dir>",
 			help:  "Changes working directory",
 		},
 
-		"config": &helpItem{
+		"config": {
 			isTopic: true,
 			help: `Configuration file is located in ~/.xc.conf.
 			
@@ -196,14 +196,14 @@ dc1.1 parent=dc1
 `,
 		},
 
-		"rcfiles": &helpItem{
+		"rcfiles": {
 			isTopic: true,
 			help: `Rcfile configured in .xc.conf file is executed every time xc starts.
 It may be useful for configuring aliases (as they are dropped when xc exits) and other options.
 Rcfile is just a number of xc commands in a text file.`,
 		},
 
-		"passmgr": &helpItem{
+		"passmgr": {
 			isTopic: true,
 			help: `Password manager is a golang plugin which must have two exported functions:
 
@@ -220,26 +220,27 @@ For more info on how to write golang plugins, please refer to golang documentati
 https://medium.com/learning-the-go-programming-language/writing-modular-go-programs-with-plugins-ec46381ee1a9`,
 		},
 
-		"debug": &helpItem{
+		"debug": {
 			usage: "<on/off>",
 			help:  `An internal debug. May cause unexpected output. One shouldn't use it unless she knows what she's doing.`,
 		},
 
-		"delay": &helpItem{
+		"delay": {
 			usage: "<seconds>",
 			help: `Sets a delay between hosts when in serial mode. This is useful for soft restarting
 i.e. when you want to give a service some time to warm up before restarting it on next host.`,
 		},
 
-		"distribute": &helpItem{
-			usage: "<host_expression> <filename>",
+		"distribute": {
+			usage: "<host_expression> <filename> [<remote_path>]",
 			help: `Distributes a local file to a number of hosts listed in "host_expression" in parallel.
-See "help expressions" for further info on <host_expression>.
+See "help expressions" for further info on <host_expression>. If the <remote_path> is given, the file will
+appear in a specific directory on remote hosts.
 
 Example: distribute %mygroup hello.txt`,
 		},
 
-		"distribute_type": &helpItem{
+		"distribute_type": {
 			usage: "<scp/tar>",
 			help: `Sets the backend used for the "distribute" command. 
 "tar" option should work faster, it also supports symlinks but may spend
@@ -247,7 +248,7 @@ more memory. "scp" is slower and may let you down in copying directories
 with symlinks. It's more stable though.`,
 		},
 
-		"expressions": &helpItem{
+		"expressions": {
 			help: `A lot of commands in xc use host expressions with a certain syntax to represent a list of hosts.
 Every expression is a comma-separated list of tokens, where token may be
     - a single host,
@@ -278,23 +279,23 @@ despite being excluded previously.`,
 		"c_exec": execHelp,
 		"p_exec": execHelp,
 
-		"exit": &helpItem{
+		"exit": {
 			usage: "",
 			help:  "Exits the xc program. You can also use Ctrl-D to quit xc.",
 		},
 
-		"help": &helpItem{
+		"help": {
 			usage: "[<command>]",
 			help:  "Shows help on various commands and topics",
 		},
 
-		"hostlist": &helpItem{
+		"hostlist": {
 			usage: "<host_expression>",
 			help: `Resolves the host expression and prints the resulting hostlist. To learn more about expressions
 use "help expressions" command`,
 		},
 
-		"local": &helpItem{
+		"local": {
 			usage: "<command>",
 			help: `Runs local command. 
 
@@ -304,41 +305,41 @@ aliases like so: alias ping local ping #*. This will create an alias "ping" so y
 "local" in front of "ping" anymore. To learn more about aliases type "help alias"`,
 		},
 
-		"mode": &helpItem{
+		"mode": {
 			usage: "<serial/parallel/collapse>",
 			help:  modeHelp,
 		},
 
-		"parallel": &helpItem{
+		"parallel": {
 			usage: "",
 			help:  modeHelp,
 		},
-		"serial": &helpItem{
+		"serial": {
 			usage: "",
 			help:  modeHelp,
 		},
-		"collapse": &helpItem{
+		"collapse": {
 			usage: "",
 			help:  modeHelp,
 		},
 
-		"prepend_hostnames": &helpItem{
+		"prepend_hostnames": {
 			usage: "<on/off>",
 			help: `Sets prepend hostnames mode on or off. When calling without arguments, shows the current value.
 This switches the appearence of hostnames before the output lines in parallel mode. 
 Switching them off is useful for copy-pasting the results.`,
 		},
 
-		"passwd": &helpItem{
+		"passwd": {
 			usage: "",
 			help:  `Sets the password for raising privileges`,
 		},
 
-		"progressbar": &helpItem{
+		"progressbar": {
 			usage: "[<on/off>]",
 			help:  `Sets the progressbar on or off. If no value is given, prints the current value.`,
 		},
-		"natural_sort": &helpItem{
+		"natural_sort": {
 			usage: "[<on/off>]",
 			help: `Sets natural sorting of host lists on or off. If no value is given, prints the current value.
 
@@ -348,13 +349,13 @@ xc considers you know what you are doing. Sorting is applied only within a group
 a workgroup or a pattern like "host{1..50}"`,
 		},
 
-		"raise": &helpItem{
+		"raise": {
 			usage: "<none/sudo/su>",
 			help: `Sets the type of raising privileges during running the "exec" command. 
 If the value is "none", no attempts to raise privileges will be made.`,
 		},
 
-		"reload": &helpItem{
+		"reload": {
 			usage: "",
 			help:  `Reloads hosts and groups data from inventoree and rewrites the cache`,
 		},
@@ -364,7 +365,7 @@ If the value is "none", no attempts to raise privileges will be made.`,
 		"p_runscript": runScriptHelp,
 		"s_runscript": runScriptHelp,
 
-		"interpreter": &helpItem{
+		"interpreter": {
 			usage: "[raise_type interpreter]",
 			help: `When invoking without arguments, the command shows the current interpreters for each type
 of privileges rasing ("help raise" to learn more on that). You can redefine interpreter
@@ -375,7 +376,7 @@ interpreter sudo sudo /bin/bash
 interpreter none /bin/sh`,
 		},
 
-		"output": &helpItem{
+		"output": {
 			usage: "[filename]",
 			help: `Copies the entire output of parallel(!) exec commands to a given logfile. To switch 
 the logging off, type "output _". When invoked without arguments, output command prints
@@ -383,26 +384,26 @@ the current output filename (or a message saying that the output logging is swit
 and exits.`,
 		},
 
-		"ssh": &helpItem{
+		"ssh": {
 			usage: "<host_expression>",
 			help: `Starts ssh session to hosts one by one, raising the privileges if raise type is not "none" 
 ("help raise" to learn more) and gives the control to user. When user exits the session
 xc moves on to the next server.`,
 		},
 
-		"threads": &helpItem{
+		"threads": {
 			usage: "[num_threads]",
 			help: `Sets max number of simultaneously running ssh threads to <num_threads>. When called
 without arguments, prints the current value.`,
 		},
 
-		"use_password_manager": &helpItem{
+		"use_password_manager": {
 			usage: "[<on/off>]",
 			help: `Sets the password manager on/off. If no value is given, prints the current value.
 If password manager is not ready, setting this value to "on" will print an error.`,
 		},
 
-		"user": &helpItem{
+		"user": {
 			usage: "<username>",
 			help:  `Sets the username for all the execution commands. This is used to get access to hosts via ssh/scp.`,
 		},
