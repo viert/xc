@@ -43,6 +43,9 @@ type Cli struct {
 
 	exitConfirm      bool
 	execConfirm      bool
+	ShowSsh          bool
+	ShowSshMin       int
+	ShowSshMax       int
 	prependHostnames bool
 	progressBar      bool
 	debug            bool
@@ -106,6 +109,9 @@ func New(cfg *config.XCConfig, backend store.Backend) (*Cli, error) {
 
 	cli.exitConfirm = cfg.ExitConfirm
 	cli.execConfirm = cfg.ExecConfirm
+	cli.ShowSsh = cfg.ShowSsh
+	cli.ShowSshMin = cfg.ShowSshMin
+	cli.ShowSshMax = cfg.ShowSshMax
 	cli.delay = cfg.Delay
 	cli.user = cfg.User
 	cli.sshThreads = cfg.SSHThreads
@@ -179,6 +185,16 @@ func (c *Cli) setPrompt() {
 		pr = term.Yellow(pr)
 	case emCollapse:
 		pr = term.Green(pr)
+	}
+
+	if c.ShowSsh {
+		if c.sshThreads > c.ShowSshMax {
+			pr += term.Colored(fmt.Sprintf("[%d]", c.sshThreads), term.CLightRed, false)
+		} else if c.sshThreads < c.ShowSshMin {
+			pr += term.Colored(fmt.Sprintf("[%d]", c.sshThreads), term.CLightYellow, false)
+		} else {
+			pr += term.Colored(fmt.Sprintf("[%d]", c.sshThreads), term.CLightBlue, false)
+		}
 	}
 
 	pr += " " + term.Colored(c.user, term.CLightBlue, true)
