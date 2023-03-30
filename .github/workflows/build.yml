@@ -25,6 +25,6 @@ jobs:
         goarch: ${{ matrix.goarch }}
         goversion: 1.15
         extra_files: xc
-        release_tag: ${{ github.ref_name }}
+        release_tag: dev
         overwrite: true
         build_command: make
