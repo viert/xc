@@ -9,7 +9,7 @@ all: deps build
 
 deps:
 	go mod download
-	go build -o deps github.com/ahmetb/govvv
+	go build -o deps/govvv github.com/ahmetb/govvv
 
 build:
 	@$(eval FLAGS := $$(shell PATH=$(PATH) govvv -flags -pkg $(GOVVV_PKG) ))
