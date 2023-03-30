@@ -25,6 +25,7 @@ jobs:
           prerelease: false
   build:
     runs-on: ubuntu-22.04
+    needs: create_release
     strategy:
       matrix:
         arch:
