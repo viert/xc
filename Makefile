@@ -14,6 +14,6 @@ deps:
 build:
 	@$(eval FLAGS := $$(shell PATH=$(PATH) govvv -flags -pkg $(GOVVV_PKG) ))
 	go build \
-		-o artifacts/xc \
+		-o bin/xc \
 		-ldflags="$(FLAGS)" \
 		cmd/xc/main.go
