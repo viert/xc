@@ -1,30 +1,50 @@
 on: [push]
 
+name: build
+
 jobs:
-  releases-matrix:
-    name: Release Go Binary
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        # build and publish in parallel: linux/386, linux/amd64, linux/arm64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
-        #goos: [linux, windows, darwin]
-        #goarch: ["386", amd64, arm64]
-        goos: [linux]
-        goarch: [amd64]
-        exclude:
-          - goarch: "386"
-            goos: darwin
-          - goarch: arm64
-            goos: windows
+        arch:
+          - amd64
+        #  - arm64
+        os:
+          - linux
+        go-version:
+          - 1.15
+        #include:
+        #  - arch: amd64
+        #    rpm_arch: x86_64
+        #  - arch: arm64
+        #    rpm_arch: aarch64
     steps:
-    - uses: actions/checkout@v3
-    - uses: wangyoucao577/go-release-action@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: ${{ matrix.goos }}
-        goarch: ${{ matrix.goarch }}
-        goversion: 1.15
-        extra_files: xc
-        release_tag: dev
-        #overwrite: true
-        build_command: make
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '${{ matrix.go-version }}'
+      # cache {{
+      - id: go-cache-paths
+        run: |
+          echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "GOMODCACHE=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ${{ steps.go-cache-paths.outputs.GOCACHE }}
+            ${{ steps.go-cache-paths.outputs.GOMODCACHE }}
+          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ matrix.go-version }}-${{ matrix.os }}-${{ matrix.arch }}-
+      # }}
+
+      # build {{
+      - name: make
+        run: make deps CGO_ENABLED=0 GOARCH=${{ matrix.arch }} GOVVV_PKG=${{ github.repository_owner }}/${{ github.event.repository.name }}
+      # }}
+
+      - name: debug
+        run: |
+          ls -al
+          ls -al deps/
