@@ -43,9 +43,12 @@ jobs:
       - name: make deps
         run: make deps CGO_ENABLED=0 GOVVV_PKG=${{ github.repository_owner }}/${{ github.event.repository.name }}
         #run: make deps CGO_ENABLED=0 GOARCH=${{ matrix.arch }}
+
       - name: make build
         run: make build CGO_ENABLED=0 GOVVV_PKG=${{ github.repository_owner }}/${{ github.event.repository.name }}
       # }}
 
       - name: debug
-        run: ls -al
+        run:
+          ls -al
+          ls -al deps/
