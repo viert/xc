@@ -49,6 +49,6 @@ jobs:
       # }}
 
       - name: debug
-        run:
+        run: |
           ls -al
           ls -al deps/
