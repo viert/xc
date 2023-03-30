@@ -53,5 +53,5 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: xc
+          name: xc.${{ matrix.os }}-${{ matrix.arch }}
           path: bin/xc
