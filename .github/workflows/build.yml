@@ -26,5 +26,5 @@ jobs:
         goversion: 1.15
         extra_files: xc
         release_tag: dev
-        overwrite: true
+        #overwrite: true
         build_command: make
