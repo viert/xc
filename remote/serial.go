@@ -231,7 +231,7 @@ func RunSerial(hosts []string, argv string, delay int) *ExecResult {
 
 execLoop:
 	for i, host := range hosts {
-		msg := term.HR(7) + " " + host + " " + term.HR(36-len(host))
+		msg := term.HR(7) + " " + host + " " + term.HR(136-len(host))
 		fmt.Println(term.Blue(msg))
 
 		if argv != "" {
