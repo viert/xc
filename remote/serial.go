@@ -15,6 +15,7 @@ import (
 	"github.com/viert/xc/log"
 	"github.com/viert/xc/term"
 	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/sys/unix"
 )
 
 func forwardUserInput(in *poller.FD, out *os.File, stopped *bool) {
@@ -146,7 +147,7 @@ func runAtHost(host string, cmd *exec.Cmd, r *ExecResult) {
 	defer func() {
 		log.Debug("Setting stdin back to blocking mode")
 		si.Close()
-		syscall.Dup2(stdinBackup, int(os.Stdin.Fd()))
+		unix.Dup2(stdinBackup,int(os.Stdin.Fd()))
 		syscall.SetNonblock(int(os.Stdin.Fd()), false)
 	}()
 
