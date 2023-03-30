@@ -22,6 +22,7 @@ require (
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/tools v0.0.0-20201117021029-3c3a81204b10 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
+	github.com/ahmetb/govvv v0.3.0
 )
 
 go 1.15

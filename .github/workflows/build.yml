@@ -1,0 +1,49 @@
+on: [push]
+
+name: build
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        arch:
+          - amd64
+        #  - arm64
+        os:
+          - linux
+        go-version:
+          - 1.15
+        #include:
+        #  - arch: amd64
+        #    rpm_arch: x86_64
+        #  - arch: arm64
+        #    rpm_arch: aarch64
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '${{ matrix.go-version }}'
+      # cache {{
+      - id: go-cache-paths
+        run: |
+          echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "GOMODCACHE=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ${{ steps.go-cache-paths.outputs.GOCACHE }}
+            ${{ steps.go-cache-paths.outputs.GOMODCACHE }}
+          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ matrix.go-version }}-${{ matrix.os }}-${{ matrix.arch }}-
+      # }}
+
+      # build {{
+      - name: make
+        run: make CGO_ENABLED=0 GOVVV_PKG=${{ github.repository_owner }}/${{ github.event.repository.name }}
+        #run: make deps CGO_ENABLED=0 GOARCH=${{ matrix.arch }}
+      # }}
+
+      - name: debug
+        run: ls -al
