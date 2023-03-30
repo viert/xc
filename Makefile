@@ -1,5 +1,8 @@
 .PHONY: all deps build
 export PATH:=deps:$(PATH)
+export CGO_ENABLED:=0
+export GOOS:=linux
+export GOARCH:=amd64
 GOVVV_PKG:=main
 
 all: deps build
