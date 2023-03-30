@@ -49,6 +49,10 @@ jobs:
           ls -al
           ls -al deps/
 
+      - name: create archive
+        run: tar --create --gzip --verbose --exclude='.gitignore' --file=${{ github.event.repository.name }}.${{ matrix.os }}-${{ matrix.arch }}.tgz --directory=artifacts/ .
+
       - uses: actions/upload-artifact@v3
         with:
-          path: xc
+          name: ${{ github.event.repository.name }}.${{ matrix.os }}-${{ matrix.arch }}.tgz
+          path: ${{ github.event.repository.name }}.${{ matrix.os }}-${{ matrix.arch }}.tgz
