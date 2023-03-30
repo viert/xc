@@ -23,6 +23,9 @@ raise = none
 exit_confirm = true
 exec_confirm = true
 distribute = tar
+show_ssh_threads = true
+show_ssh_threads_min = 5
+show_ssh_threads_max = 50
 
 [executer]
 ssh_threads = 50
@@ -93,6 +96,9 @@ type XCConfig struct {
 	LogFile                string
 	ExitConfirm            bool
 	ExecConfirm            bool
+	ShowSsh                bool
+	ShowSshMin             int
+	ShowSshMax             int
 	SudoInterpreter        string
 	SuInterpreter          string
 	Interpreter            string
@@ -121,6 +127,9 @@ const (
 	defaultLogFile           = ""
 	defaultExitConfirm       = true
 	defaultExecConfirm       = true
+	defaultShowSshThreads    = true
+	defaultShowSshThreadsMin = 5
+	defaultShowSshThreadsMax = 50
 	defaultInterpreter       = "/bin/bash"
 	defaultSudoInterpreter   = "sudo /bin/bash"
 	defaultSuInterpreter     = "su -"
@@ -295,6 +304,24 @@ func read(filename string, secondPass bool) (*XCConfig, error) {
 		execcnfrm = defaultExecConfirm
 	}
 	cfg.ExecConfirm = execcnfrm
+
+	shwsshthrds, err := props.GetBool("main.show_ssh_threads")
+	if err != nil {
+		shwsshthrds = defaultShowSshThreads
+	}
+	cfg.ShowSsh = shwsshthrds
+
+	shwsshthrdsmin, err := props.GetInt("main.show_ssh_threads_min")
+	if err != nil {
+		shwsshthrdsmin = defaultShowSshThreadsMin
+	}
+	cfg.ShowSshMin = shwsshthrdsmin
+
+	shwsshthrdsmax, err := props.GetInt("main.show_ssh_threads_max")
+	if err != nil {
+		shwsshthrdsmax = defaultShowSshThreadsMax
+	}
+	cfg.ShowSshMax = shwsshthrdsmax
 
 	pbar, err := props.GetBool("executer.progress_bar")
 	if err != nil {
