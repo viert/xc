@@ -24,8 +24,7 @@ jobs:
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
         goversion: 1.15
-        pre_command: export CGO_ENABLED=0
         extra_files: xc
         release_tag: ${GITHUB_REF#refs/heads/}
         overwrite: true
-        build_flags: cmd/xc/main.go
+        build_command: make
