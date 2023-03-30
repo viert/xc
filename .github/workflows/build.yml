@@ -1,0 +1,38 @@
+on: [push]
+
+name: build
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        arch:
+          - amd64
+          - arm64
+        os:
+          - linux
+        go-version:
+          - 1.15
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '${{ matrix.go-version }}'
+
+      # build {{
+      - name: make deps
+        run: make deps
+      - name: make build
+        run: make build CGO_ENABLED=0 GOARCH=${{ matrix.arch }} GOVVV_PKG=${{ github.repository_owner }}/${{ github.event.repository.name }}
+      # }}
+
+      - name: debug
+        run: |
+          ls -al
+          ls -al deps/
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: xc.${{ matrix.os }}-${{ matrix.arch }}
+          path: bin/xc

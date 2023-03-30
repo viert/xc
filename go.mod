@@ -16,6 +16,7 @@ require (
 	github.com/viert/sekwence v0.0.0-20190110111110-24bab1ce82a0
 	golang.org/x/crypto v0.1.0
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
+	github.com/ahmetb/govvv v0.3.0
 )
 
 go 1.15
