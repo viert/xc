@@ -14,8 +14,7 @@ require (
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/viert/properties v0.0.0-20190120163359-e72631698e82
 	github.com/viert/sekwence v0.0.0-20190110111110-24bab1ce82a0
-	golang.org/x/crypto v0.0.0-20201116153603-4be66e5b6582
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/crypto v0.1.0
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 )
 
