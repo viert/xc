@@ -143,3 +143,6 @@ The only mandatory option is `path` which is used to load your library by xc its
 Any time xc needs a password for a host, the `GetPass(hostname string)string` function is called. This behaviour may be temporarily turned off by typing `use_password_manager off`.
 
 There may be an optional `PrintDebug()` function in your plugin which is accessible by typing `_passmgr_debug`. This is useful to debug your code.
+
+## integration for aws ec2
+[generate xcdata.ini from aws ec2 cli](aws/README.md)

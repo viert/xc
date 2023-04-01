@@ -17,3 +17,4 @@ build:
 		-o bin/xc \
 		-ldflags="$(FLAGS)" \
 		cmd/xc/main.go
+	cp aws/xcAwsInventory.py bin/
