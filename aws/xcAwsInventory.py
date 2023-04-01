@@ -31,7 +31,7 @@ cfg = {
     'logFile': 'stdout',
     'logLevel': 'info',
     'regions': [],
-    'iniFileName': '~/xcdata.ini',
+    'iniFilePath': '~/xcdata.ini',
     'tagForMainGroup': 'Name', # имя тега для "основной группы" хоста, все остальные запихнуться в "parent" или в "tags"
     'tagForParentGroup': 'role', # имя тега для "родительской группы"
 }
@@ -248,6 +248,6 @@ if __name__ == "__main__":
         config = config + '\n' + str(host)
     config = config + '\n'
     logging.debug("%s: config='%s'" % (defName,config))
-    with open(os.path.expanduser(cfg['iniFileName']), 'w') as f:
+    with open(os.path.expanduser(cfg['iniFilePath']), 'w') as f:
         f.write(config)
     # }}
