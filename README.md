@@ -146,3 +146,12 @@ There may be an optional `PrintDebug()` function in your plugin which is accessi
 
 ## integration for aws ec2
 [generate xcdata.ini from aws ec2 cli](aws/README.md)
+
+## remote environment settings
+example
+```
+[remote_environ]
+PATH = /opt/puppetlabs/bin:$PATH:/usr/sbin:/sbin
+LC_ALL = en_US.UTF8
+FACTERLIB = /opt/puppetlabs/puppet/cache/lib/facter
+```
