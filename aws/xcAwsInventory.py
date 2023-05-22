@@ -34,6 +34,7 @@ cfg = {
     'iniFilePath': '~/xcdata.ini',
     'tagForMainGroup': 'Name', # имя тега для "основной группы" хоста, все остальные запихнуться в "parent" или в "tags"
     'tagForParentGroup': 'role', # имя тега для "родительской группы"
+    'workgroup': 'devops', # имя для дефолтной workgroup
 }
 
 # parse args
@@ -190,12 +191,17 @@ if __name__ == "__main__":
         # добавляем датацентр в общий список дц
         if instanceInfo['dc'] not in datacenters:
             datacenters.append(instanceInfo['dc'])
+        # формируем workgroups
+        # workgroups это обязательный параметр, без него не будут работать tags=
+        # берём дефолт из конфига
+        workgroups = [ cfg['workgroup'] ]
         # проходиться по тегам и сортируем их по типам {{
         mainGroupName = None
         parentGroupName = None
         tagsGroupNames = None
         for tag in instanceInfo['tags']:
             groupName = 'tag' + '_' + tag['Key'].replace('-','_') + '_' + tag['Value'].replace('-','_')
+            groupName = re.sub(r'\s+', '_', groupName)
             if tag['Key'] == cfg['tagForMainGroup']:
                 # из этого тега делаем "основную группу"
                 mainGroupName = groupName
@@ -214,7 +220,7 @@ if __name__ == "__main__":
         # }}
         # формируем строку для группу в секции [groups] {{
         if mainGroupName:
-            groupLine = mainGroupName
+            groupLine = mainGroupName + ' wg=' + cfg['workgroup']
         else:
             # mainGroupName обязательный
             logging.warning("%s: mainGroupName not found for host, instanceInfo='%s', skipping" % (defName,json.dumps(instanceInfo)))
@@ -233,6 +239,7 @@ if __name__ == "__main__":
             hosts.append(host)
 
     logging.debug("%s: datacenters='%s'" % (defName,datacenters))
+    logging.debug("%s: workgroups='%s'" % (defName,workgroups))
     logging.debug("%s: groups='%s'" % (defName,groups))
     logging.debug("%s: hosts='%s'" % (defName,hosts))
 
@@ -240,6 +247,9 @@ if __name__ == "__main__":
     config = '[datacenters]'
     for datacenter in datacenters:
         config = config + '\n' + str(datacenter)
+    config = config + '\n\n' + '[workgroups]'
+    for workgroup in workgroups:
+        config = config + '\n' + str(workgroup)
     config = config + '\n\n' + '[groups]'
     for group in groups:
         config = config + '\n' + str(group)
