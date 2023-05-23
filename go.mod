@@ -11,6 +11,7 @@ require (
 	golang.org/x/crypto v0.1.0
 	golang.org/x/sys v0.1.0
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
+	github.com/ahmetb/govvv v0.3.0
 )
 
 require (

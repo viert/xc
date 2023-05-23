@@ -30,7 +30,7 @@ jobs:
       matrix:
         arch:
           - amd64
-          #- arm64
+          - arm64
         os:
           - linux
         go-version:
@@ -38,8 +38,8 @@ jobs:
         include:
           - arch: amd64
             rpm_arch: x86_64
-        #  - arch: arm64
-        #    rpm_arch: aarch64
+          - arch: arm64
+            rpm_arch: aarch64
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -65,9 +65,7 @@ jobs:
 
       # create asset {{
       - name: create archives
-        run: |
-          zip --junk-paths ${{ github.event.repository.name }}-${{ steps.release-version.outputs.RELEASE_VERSION }}.${{ matrix.os }}-${{ matrix.arch }}.zip bin/*
-          tar --create --gzip --verbose --exclude='.gitignore' --file=${{ github.event.repository.name }}-${{ steps.release-version.outputs.RELEASE_VERSION }}.${{ matrix.os }}-${{ matrix.arch }}.tgz --directory=bin/ .
+        run: tar --create --gzip --verbose --exclude='.gitignore' --file=${{ github.event.repository.name }}-${{ steps.release-version.outputs.RELEASE_VERSION }}.${{ matrix.os }}-${{ matrix.arch }}.tgz --directory=bin/ .
       - name: create package deb
         uses: bpicode/github-action-fpm@master
         with:
@@ -85,16 +83,6 @@ jobs:
           ls -al ./
 
       # upload-release-asset {{
-      - name: upload-release-asset zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./${{ github.event.repository.name }}-${{ steps.release-version.outputs.RELEASE_VERSION }}.${{ matrix.os }}-${{ matrix.arch }}.zip
-          asset_name: ${{ github.event.repository.name }}-${{ steps.release-version.outputs.RELEASE_VERSION }}.${{ matrix.os }}-${{ matrix.arch }}.zip
-          asset_content_type: application/zip
-
       - name: upload-release-asset tgz
         uses: actions/upload-release-asset@v1
         env:
